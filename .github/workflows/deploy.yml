@@ -54,6 +54,19 @@ jobs:
       - name: Type-check
         run: npx tsc -b
 
+      - name: Guard — VITE_WEATHER_API_KEY must be set
+        # Fail fast rather than shipping a bundle with no api key
+        # (the deployed site would 401 on every weather request).
+        # Set the secret under Settings → Secrets and variables → Actions.
+        env:
+          KEY: ${{ secrets.VITE_WEATHER_API_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "::error::VITE_WEATHER_API_KEY secret is not set."
+            echo "Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
       - name: Build
         env:
           VITE_WEATHER_API_KEY: ${{ secrets.VITE_WEATHER_API_KEY }}
