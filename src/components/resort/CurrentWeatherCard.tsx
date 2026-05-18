@@ -6,6 +6,8 @@ import { useWeather, WeatherFetchError } from "@/hooks/useWeather";
 import { conditionLabel } from "@/lib/weather/forecast";
 import { strings } from "@/lib/i18n/strings";
 import { useI18n } from "@/lib/i18n/context";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorWithRetry } from "@/components/ui/ErrorWithRetry";
 import { AirQualityPanel } from "./AirQualityPanel";
 
 type CurrentWeatherCardProps = {
@@ -48,7 +50,15 @@ export function CurrentWeatherCard({ resortSlug, variant = "standard" }: Current
       </div>
 
       {status === "loading" && !summary ? (
-        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{t(strings.resortPage.weatherLoading)}</p>
+        <div className="mt-3 flex items-center gap-3">
+          <Skeleton className="h-9 w-20" />
+          <div className="flex-1 grid grid-cols-2 gap-3">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-4 w-1/2" />
+            <Skeleton className="h-4 w-3/5" />
+          </div>
+        </div>
       ) : summary ? (
         <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-slate-600 dark:text-slate-300 sm:flex sm:flex-wrap sm:items-center sm:gap-4">
           <div className="flex items-center gap-2">
@@ -82,11 +92,19 @@ export function CurrentWeatherCard({ resortSlug, variant = "standard" }: Current
           </div>
         </div>
       ) : (
-        <p className="mt-2 text-sm text-amber-700 dark:text-amber-200">
-          {error instanceof WeatherFetchError && error.status === 503
-            ? t(strings.resortPage.weatherUpdating)
-            : error?.message ?? t(strings.resortPage.weatherError)}
-        </p>
+        <ErrorWithRetry
+          className="mt-2"
+          message={
+            error instanceof WeatherFetchError && error.status === 503
+              ? t(strings.resortPage.weatherUpdating)
+              : error?.message ?? t(strings.resortPage.weatherError)
+          }
+          retryLabel={t(strings.resortPage.refresh)}
+          onRetry={() => {
+            reload();
+            setAqRefresh((value) => value + 1);
+          }}
+        />
       )}
     </div>
   );

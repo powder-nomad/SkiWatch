@@ -1,0 +1,42 @@
+import { FiRefreshCcw } from "react-icons/fi";
+
+// Tiny error-state widget with an actionable retry button.
+// Use in place of bare "data unavailable" text:
+//
+//   if (hasError) return <ErrorWithRetry message={t(strings.foo)} onRetry={reload} />;
+//
+// Pass the actual error code/message when you have one — users can
+// at least screenshot it and report it.
+export function ErrorWithRetry({
+  message,
+  onRetry,
+  retryLabel = "Retry",
+  className = "",
+}: {
+  message: string;
+  onRetry: () => void;
+  retryLabel?: string;
+  className?: string;
+}) {
+  return (
+    <div
+      role="alert"
+      className={[
+        "flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200",
+        className,
+      ].join(" ")}
+    >
+      <span className="flex-1 truncate" title={message}>
+        {message}
+      </span>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="inline-flex items-center gap-1 rounded-full border border-amber-300 px-2 py-0.5 text-xs font-semibold text-amber-800 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-100 dark:hover:bg-amber-900/40"
+      >
+        <FiRefreshCcw className="h-3 w-3" aria-hidden />
+        {retryLabel}
+      </button>
+    </div>
+  );
+}

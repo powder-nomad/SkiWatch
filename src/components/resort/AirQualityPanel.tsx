@@ -5,6 +5,8 @@ import { FiRefreshCcw } from "react-icons/fi";
 import { useAirQuality } from "@/hooks/useAirQuality";
 import { useI18n } from "@/lib/i18n/context";
 import { strings } from "@/lib/i18n/strings";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorWithRetry } from "@/components/ui/ErrorWithRetry";
 
 type AirQualityPanelProps = {
   resortSlug: string;
@@ -79,11 +81,17 @@ export function AirQualityPanel({ resortSlug, variant = "full", refreshToken }: 
       </div>
 
       {isLoading ? (
-        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{t(strings.resortPage.weatherLoading)}</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
       ) : hasError ? (
-        <p className="mt-2 text-sm text-amber-700 dark:text-amber-200">
-          {error?.message ?? t(strings.resortPage.airQuality.noData)}
-        </p>
+        <ErrorWithRetry
+          className="mt-2"
+          message={error?.message ?? t(strings.resortPage.airQuality.noData)}
+          retryLabel={t(strings.resortPage.refresh)}
+          onRetry={reload}
+        />
       ) : (
         <div className="mt-3 space-y-3 text-sm text-slate-700 dark:text-slate-200">
           <div className="grid gap-2 sm:grid-cols-2">
