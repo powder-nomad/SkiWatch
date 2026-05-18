@@ -50,6 +50,11 @@ export const strings = {
     collapse: createText({ ko: "접기", en: "Collapse", ja: "折りたたむ" }),
     expand: createText({ ko: "보기", en: "Expand", ja: "表示" }),
     weather: createText({ ko: "날씨", en: "Weather", ja: "天気" }),
+    pinWeatherToDashboard: createText({
+      ko: "대시보드에 날씨 추가",
+      en: "Pin weather to dashboard",
+      ja: "天気をダッシュボードに追加",
+    }),
     details: createText({ ko: "리조트 정보", en: "Resort details", ja: "リゾート情報" }),
     newTab: createText({ ko: "새 탭", en: "New tab", ja: "新しいタブ" }),
     externalTooltip: createText({
