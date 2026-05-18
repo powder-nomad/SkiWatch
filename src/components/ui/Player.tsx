@@ -38,8 +38,16 @@ function Player({
   // Outer container — fullscreen targets this so the staleness badge and
   // capture button stay visible inside the fullscreen viewport.
   const containerRef = useRef<HTMLDivElement | null>(null);
+  // hls.js instance held in a ref so we can read .levels and set
+  // .currentLevel from event handlers + the quality selector. Null when
+  // the player is using native HLS (Safari) or a non-HLS stream type.
+  const hlsRef = useRef<Hls | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPip, setIsPip] = useState(false);
+  // Available HLS quality levels (height in pixels, e.g. 1080 → "1080p").
+  // Populated on MANIFEST_PARSED; -1 in `currentLevel` means "Auto".
+  const [hlsLevels, setHlsLevels] = useState<number[]>([]);
+  const [hlsLevel, setHlsLevel] = useState<number>(-1);
   const { t } = useI18n();
   const { status: summaryStatus, data: summaryData } = useWeather(resortSlug, {
     mode: "now",
@@ -77,21 +85,39 @@ function Player({
     if (stream.type === StreamType.HLS && video) {
       if (Hls.isSupported()) {
         const hls = new Hls();
+        hlsRef.current = hls;
+        setHlsLevels([]);
+        setHlsLevel(-1);
         hls.loadSource(stream.url);
         hls.attachMedia(video);
         const onHlsError = (_evt: unknown, data: { fatal?: boolean }) => {
           if (data?.fatal) setLoadState("failed");
         };
         const onFragLoaded = () => setLastDataAt(Date.now());
+        const onManifestParsed = () => {
+          // Heights of all variants. Some streams only ship one quality
+          // (height: undefined) — surface as bitrate fallback so the UI
+          // still has a label.
+          setHlsLevels(hls.levels.map((l: { height?: number; bitrate?: number }) => l.height ?? Math.round((l.bitrate ?? 0) / 1000)));
+          setHlsLevel(hls.currentLevel);
+        };
+        const onLevelSwitched = (_evt: unknown, data: { level: number }) => {
+          setHlsLevel(data.level);
+        };
         hls.on(Hls.Events.ERROR, onHlsError);
         hls.on(Hls.Events.FRAG_LOADED, onFragLoaded);
+        hls.on(Hls.Events.MANIFEST_PARSED, onManifestParsed);
+        hls.on(Hls.Events.LEVEL_SWITCHED, onLevelSwitched);
         const onPlaying = () => setLoadState("playing");
         video.addEventListener("playing", onPlaying);
         return () => {
           hls.off(Hls.Events.ERROR, onHlsError);
           hls.off(Hls.Events.FRAG_LOADED, onFragLoaded);
+          hls.off(Hls.Events.MANIFEST_PARSED, onManifestParsed);
+          hls.off(Hls.Events.LEVEL_SWITCHED, onLevelSwitched);
           video.removeEventListener("playing", onPlaying);
           hls.destroy();
+          hlsRef.current = null;
         };
       } else {
         // Native HLS path (Safari). The video element fires error/playing.
@@ -370,7 +396,7 @@ function Player({
           )}
         />
       )}
-      {(canPip || canFullscreen) && (
+      {(canPip || canFullscreen || hlsLevels.length > 1) && (
         <div
           className={cn(
             "absolute z-30 flex items-center gap-1 transition-opacity",
@@ -378,6 +404,26 @@ function Player({
             overlayOpacityClass
           )}
         >
+          {hlsLevels.length > 1 && !compactCapture && (
+            <select
+              value={hlsLevel}
+              onChange={(e) => {
+                const lvl = Number(e.target.value);
+                if (hlsRef.current) hlsRef.current.currentLevel = lvl;
+                setHlsLevel(lvl);
+              }}
+              aria-label="Stream quality"
+              title="Stream quality"
+              className="inline-flex h-8 cursor-pointer items-center rounded-md border border-slate-200/70 bg-white/85 px-2 text-xs font-semibold text-slate-700 shadow backdrop-blur hover:bg-white dark:border-slate-700/70 dark:bg-slate-900/80 dark:text-slate-100"
+            >
+              <option value={-1}>Auto</option>
+              {hlsLevels.map((h, i) => (
+                <option key={i} value={i}>
+                  {h ? `${h}p` : `level ${i}`}
+                </option>
+              ))}
+            </select>
+          )}
           {canPip && (
             <button
               type="button"
