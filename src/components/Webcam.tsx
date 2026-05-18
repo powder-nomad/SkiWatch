@@ -26,6 +26,8 @@ import { createText } from "@/lib/i18n/locales";
 import { strings } from "@/lib/i18n/strings";
 import { useResortData, useResortIndex } from "@/lib/resortData";
 import { getStreamIdentifier } from "@/lib/streamKeys";
+import { useFavorites } from "@/hooks/useFavorites";
+import { FaStar } from "react-icons/fa";
 import { cn } from "@/lib/utils";
 
 type WebcamParams = {
@@ -347,6 +349,34 @@ function Webcam() {
     navigateForItems([]);
   };
 
+  // Favourites bulk-add: resolves each starred stream id via the resort
+  // index, drops the ones already in the view, and pipes the rest into
+  // the existing handleAddToGrid flow. Same UX as adding one-by-one from
+  // the sidebar, just collapsed into one click for the common "open all
+  // my cams" intent.
+  const { favorites } = useFavorites();
+  const favouritesNotInView = useMemo(() => {
+    const inView = new Set(viewItems.map((v) => v.id));
+    return favorites.filter((id) => !inView.has(id) && Boolean(findStreamById(id)));
+  }, [favorites, viewItems, findStreamById]);
+
+  const handlePinFavourites = () => {
+    if (favouritesNotInView.length === 0) return;
+    const payload: Parameters<typeof handleAddToGrid>[0] = [];
+    for (const id of favouritesNotInView) {
+      const entry = findStreamById(id);
+      if (!entry) continue;
+      payload.push({
+        type: "webcam",
+        stream: entry.stream,
+        resort: entry.resort,
+        streamId: id,
+        resortSlug: entry.resortSlug,
+      });
+    }
+    handleAddToGrid(payload);
+  };
+
   const resolveDropTargetFromPoint = (point: { x: number; y: number }) => {
     const inRect = (node: HTMLElement | null) => {
       if (!node) return false;
@@ -579,6 +609,18 @@ function Webcam() {
                       {t(strings.webcam.multiView)}: {viewItems.length}
                     </p>
                     <div className="flex items-center gap-2">
+                      {favouritesNotInView.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={handlePinFavourites}
+                          title={`Pin ${favouritesNotInView.length} favourite${favouritesNotInView.length === 1 ? "" : "s"} to view`}
+                          aria-label="Pin favourites"
+                          className="inline-flex items-center gap-2 rounded-md border border-amber-300/80 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 shadow-sm hover:bg-amber-100 dark:border-amber-700/70 dark:bg-amber-900/30 dark:text-amber-100 dark:hover:bg-amber-900/40"
+                        >
+                          <FaStar className="h-4 w-4" aria-hidden />
+                          <span className="hidden sm:inline">+{favouritesNotInView.length}</span>
+                        </button>
+                      )}
                       <ShareViewButton />
                       <button
                         type="button"
