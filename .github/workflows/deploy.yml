@@ -72,6 +72,33 @@ jobs:
           VITE_WEATHER_API_KEY: ${{ secrets.VITE_WEATHER_API_KEY }}
         run: npm run build
 
+      - name: Bundle size budget (initial chunk)
+        # Guards against the route-level code-split regressing — if the
+        # main `index-*.js` chunk balloons past the budget, fail the
+        # deploy. Lazy route/lib chunks (video, dnd, per-page) aren't
+        # checked since they only load on demand.
+        #
+        # Current size at v0.4.x: ~80 KB gz. Budget set to 120 KiB which
+        # leaves ~50% headroom for honest growth.
+        run: |
+          set -e
+          INDEX_JS=$(ls dist/assets/index-*.js | head -1)
+          if [ -z "$INDEX_JS" ]; then
+            echo "::error::No dist/assets/index-*.js found"
+            exit 1
+          fi
+          # gzip -9 mirrors what Vite reports in its build output.
+          GZ_SIZE=$(gzip -9c "$INDEX_JS" | wc -c)
+          GZ_LIMIT=122880  # 120 KiB
+          echo "index gzip size: $GZ_SIZE bytes  (budget: $GZ_LIMIT bytes / 120 KiB)"
+          if [ "$GZ_SIZE" -gt "$GZ_LIMIT" ]; then
+            echo "::error::index-*.js gzipped is $GZ_SIZE bytes; budget is $GZ_LIMIT."
+            echo "Run \`npm run build\` locally and inspect dist/assets/*.js."
+            echo "Consider lazy-loading more code or splitting heavy deps."
+            ls -la dist/assets/*.js
+            exit 1
+          fi
+
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
