@@ -19,6 +19,7 @@ import { Resort, Stream, StreamType } from "@/data/Util";
 import Sidebar from "@/components/ui/Sidebar";
 import Player from "@/components/ui/Player";
 import { DashboardGrid } from "@/components/ui/DashboardGrid";
+import { ShareViewButton } from "@/components/ui/ShareViewButton";
 import { type DashboardItem, type DashboardItemType } from "@/components/ui/DashboardTypes";
 import { useI18n } from "@/lib/i18n/context";
 import { createText } from "@/lib/i18n/locales";
@@ -577,13 +578,16 @@ function Webcam() {
                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
                       {t(strings.webcam.multiView)}: {viewItems.length}
                     </p>
-                    <button
-                      type="button"
-                      onClick={handleClearGrid}
-                      className="inline-flex items-center gap-2 rounded-md border border-slate-200/80 px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800"
-                    >
-                      {t(strings.webcam.clearAll)}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <ShareViewButton />
+                      <button
+                        type="button"
+                        onClick={handleClearGrid}
+                        className="inline-flex items-center gap-2 rounded-md border border-slate-200/80 px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800"
+                      >
+                        {t(strings.webcam.clearAll)}
+                      </button>
+                    </div>
                   </div>
                   <DashboardGrid
                     items={viewItems}
