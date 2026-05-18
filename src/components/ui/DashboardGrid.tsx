@@ -36,7 +36,9 @@ export function DashboardGrid({
 }: DashboardGridProps) {
   const { t } = useI18n();
   const showDropHighlight = Boolean(isOver || isDropping);
-  const columns = isMobileViewport ? 2 : items.length <= 2 ? 2 : items.length <= 4 ? 2 : 3;
+  // Mobile: single column so each tile gets the full ~358 px width
+  // and stays watchable. Desktop: 2 columns up to 4 tiles, then 3.
+  const columns = isMobileViewport ? 1 : items.length <= 2 ? 2 : items.length <= 4 ? 2 : 3;
   const totalCells = items.reduce((sum, item) => sum + item.colSpan * item.rowSpan, 0);
   const largestRowSpan = items.reduce((max, item) => Math.max(max, item.rowSpan), 1);
   const rows = Math.max(largestRowSpan, Math.ceil(totalCells / columns));
@@ -63,7 +65,10 @@ export function DashboardGrid({
               gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
               gridTemplateRows: isMobileViewport ? undefined : `repeat(${rows}, minmax(0, 1fr))`,
               gridAutoFlow: "dense",
-              gridAutoRows: isMobileViewport ? "10rem" : undefined,
+              // Mobile rows size to each tile's 16:9 aspect (set on the
+              // tile itself, see DashboardGridTile). Desktop keeps fixed
+              // grid rows so colSpan/rowSpan resize semantics work.
+              gridAutoRows: undefined,
             }}
           >
             {items.map((item) => (
@@ -72,6 +77,7 @@ export function DashboardGrid({
                 item={item}
                 maxCols={columns}
                 maxRows={rows}
+                isMobileViewport={isMobileViewport}
                 onRemove={() => onRemove(item.id)}
                 onToggleSpan={() => onToggleSpan(item.id)}
                 onResize={(colSpan, rowSpan) => onResize(item.id, colSpan, rowSpan)}
@@ -88,12 +94,13 @@ type DashboardGridTileProps = {
   item: DashboardItem;
   maxCols: number;
   maxRows: number;
+  isMobileViewport?: boolean;
   onRemove: () => void;
   onToggleSpan: () => void;
   onResize: (colSpan: number, rowSpan: number) => void;
 };
 
-function DashboardGridTile({ item, maxCols, maxRows, onRemove, onToggleSpan, onResize }: DashboardGridTileProps) {
+function DashboardGridTile({ item, maxCols, maxRows, isMobileViewport = false, onRemove, onToggleSpan, onResize }: DashboardGridTileProps) {
   const { t } = useI18n();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
@@ -166,7 +173,11 @@ function DashboardGridTile({ item, maxCols, maxRows, onRemove, onToggleSpan, onR
       <div
         ref={tileRef}
         className={cn(
-          "group relative h-full w-full overflow-visible rounded-xl border border-slate-200/80 bg-slate-100/80 shadow-sm ring-0 backdrop-blur transition hover:ring-2 hover:ring-accent-light/50 dark:border-slate-800/80 dark:bg-slate-800/50 dark:hover:ring-accent-dark/60",
+          "group relative w-full overflow-visible rounded-xl border border-slate-200/80 bg-slate-100/80 shadow-sm ring-0 backdrop-blur transition hover:ring-2 hover:ring-accent-light/50 dark:border-slate-800/80 dark:bg-slate-800/50 dark:hover:ring-accent-dark/60",
+          // Mobile: each tile is full-width and self-sizes to 16:9 so
+          // the cam image fills the cell with no letterbox. Desktop:
+          // keep h-full so the grid row controls height.
+          isMobileViewport ? "aspect-video" : "h-full",
           isDragging && "z-30 scale-[1.01] ring-2 ring-accent-light/70 dark:ring-accent-dark/80"
         )}
       >
@@ -179,6 +190,7 @@ function DashboardGridTile({ item, maxCols, maxRows, onRemove, onToggleSpan, onR
               rounded={false}
               capturePlacement="bottom-right"
               compactCapture
+              bare={isMobileViewport}
             />
           )}
           {item.type === "weather" && item.resortSlug && (

@@ -24,6 +24,11 @@ type PlayerProps = {
   rounded?: boolean;
   capturePlacement?: "top-right" | "bottom-right" | "bottom-left";
   compactCapture?: boolean;
+  // When true, hides the Capture button and the PiP/Fullscreen/Quality
+  // overlay cluster. Used by DashboardGrid on mobile multiview tiles
+  // where overlay clutter covers most of a 16:9 cell — native
+  // `<video controls>` then handles play/pause + fullscreen.
+  bare?: boolean;
 };
 
 function Player({
@@ -33,6 +38,7 @@ function Player({
   rounded = true,
   capturePlacement = "top-right",
   compactCapture = false,
+  bare = false,
 }: PlayerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   // Outer container — fullscreen targets this so the staleness badge and
@@ -318,7 +324,7 @@ function Player({
       onFocusCapture={() => setOverlayActive(true)}
       onBlurCapture={() => !isMobile && setOverlayActive(false)}
     >
-      {canCapture && (
+      {canCapture && !bare && (
         <button
           type="button"
           onClick={handleCapture}
@@ -396,7 +402,7 @@ function Player({
           )}
         />
       )}
-      {(canPip || canFullscreen || hlsLevels.length > 1) && (
+      {!bare && (canPip || canFullscreen || hlsLevels.length > 1) && (
         <div
           className={cn(
             "absolute z-30 flex items-center gap-1 transition-opacity",
