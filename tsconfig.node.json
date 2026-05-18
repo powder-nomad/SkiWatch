@@ -5,6 +5,7 @@
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "skipLibCheck": true,
     "types": ["node"]
   },
   "include": ["vite.config.ts"]

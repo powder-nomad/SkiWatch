@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { VitePWA } from "vite-plugin-pwa";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -8,7 +9,66 @@ const __dirname = dirname(__filename);
 
 export default defineConfig({
   base: "/SkiWatch/",
-  plugins: [react()],
+  plugins: [
+    react(),
+    // PWA: makes SkiWatch installable + caches the static shell so the
+    // app boots offline. Critical for "skier on the chairlift with bad
+    // cellular" — the cached last-seen webcam thumbnails + weather
+    // snapshot are still visible when the network drops.
+    VitePWA({
+      registerType: "autoUpdate",
+      includeAssets: ["favicon.ico", "robots.txt"],
+      manifest: {
+        name: "SkiWatch",
+        short_name: "SkiWatch",
+        description: "Live webcams + glance weather for KR/JP/CH/CA ski resorts.",
+        theme_color: "#0f172a",
+        background_color: "#ffffff",
+        display: "standalone",
+        start_url: "/SkiWatch/",
+        scope: "/SkiWatch/",
+        icons: [
+          // The repo only ships a favicon today; using it as the PWA
+          // icon is suboptimal (low res) but unblocks "Add to Home
+          // Screen" until proper 192/512 icons land.
+          { src: "favicon.ico", sizes: "64x64", type: "image/x-icon" },
+        ],
+      },
+      workbox: {
+        // Precache the static shell. Lazy-loaded chunks are picked up
+        // automatically by globPatterns.
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest}"],
+        // Avoid caching weather API and webcam streams — those need to
+        // be fresh, and HLS .ts segments would blow the cache budget.
+        runtimeCaching: [
+          {
+            // Cache open-ski-data registry reads (resort list, slug
+            // metadata). These change at most once per release.
+            urlPattern: /^https:\/\/raw\.githubusercontent\.com\/powder-nomad\/open-ski-data\/.*/,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "open-ski-data",
+              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // Ridgecast weather endpoints — let the SW serve the
+            // last-good snapshot if the network is flaky, but try a
+            // fresh fetch in the background so the next page render
+            // is current.
+            urlPattern: /^https:\/\/api\.pk3d\.dev\/ridgecast\/v1\/.*/,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "ridgecast",
+              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 10 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
+      },
+    }),
+  ],
   resolve: {
     alias: {
       "@": resolve(__dirname, "src"),
