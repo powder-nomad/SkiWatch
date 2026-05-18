@@ -7,7 +7,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { strings } from "@/lib/i18n/strings";
 import VivaldiPlayer from "@/components/ui/vivaldi/VivaldiPlayer";
 import { useWeather } from "@/hooks/useWeather";
-import { FiCamera, FiChevronDown, FiChevronUp, FiDroplet, FiExternalLink, FiWind } from "react-icons/fi";
+import { FiCamera, FiChevronDown, FiChevronUp, FiDroplet, FiExternalLink, FiMaximize, FiMinimize, FiMonitor, FiWind } from "react-icons/fi";
 import { cn } from "@/lib/utils";
 
 // Iframe load timeout — used as a heuristic for mixed-content blocks, which
@@ -35,6 +35,11 @@ function Player({
   compactCapture = false,
 }: PlayerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  // Outer container — fullscreen targets this so the staleness badge and
+  // capture button stay visible inside the fullscreen viewport.
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isPip, setIsPip] = useState(false);
   const { t } = useI18n();
   const { status: summaryStatus, data: summaryData } = useWeather(resortSlug, {
     mode: "now",
@@ -115,6 +120,61 @@ function Player({
     const id = setInterval(() => setNowTs(Date.now()), 5000);
     return () => clearInterval(id);
   }, [lastDataAt]);
+
+  // Track fullscreen + PiP state from the document — these are the
+  // sources of truth (user can exit via Esc / OS UI without clicking
+  // our buttons, and we still need to flip the icon back).
+  useEffect(() => {
+    const onFs = () => setIsFullscreen(document.fullscreenElement === containerRef.current);
+    document.addEventListener("fullscreenchange", onFs);
+    return () => document.removeEventListener("fullscreenchange", onFs);
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const onEnter = () => setIsPip(true);
+    const onLeave = () => setIsPip(false);
+    video.addEventListener("enterpictureinpicture", onEnter);
+    video.addEventListener("leavepictureinpicture", onLeave);
+    return () => {
+      video.removeEventListener("enterpictureinpicture", onEnter);
+      video.removeEventListener("leavepictureinpicture", onLeave);
+    };
+  }, []);
+
+  const toggleFullscreen = () => {
+    const container = containerRef.current;
+    if (!container) return;
+    if (document.fullscreenElement === container) {
+      document.exitFullscreen().catch(() => {});
+    } else if (container.requestFullscreen) {
+      container.requestFullscreen().catch(() => {});
+    }
+  };
+
+  const togglePip = async () => {
+    const video = videoRef.current;
+    if (!video) return;
+    try {
+      if (document.pictureInPictureElement === video) {
+        await document.exitPictureInPicture();
+      } else if (video.requestPictureInPicture) {
+        await video.requestPictureInPicture();
+      }
+    } catch {
+      // User denied / browser blocked. Silent — they can still use the
+      // browser's built-in PiP control in the video controls bar.
+    }
+  };
+
+  const canFullscreen =
+    typeof document !== "undefined" && document.fullscreenEnabled === true;
+  const canPip =
+    stream.type === StreamType.HLS &&
+    typeof document !== "undefined" &&
+    "pictureInPictureEnabled" in document &&
+    document.pictureInPictureEnabled === true;
 
   // Iframe load timer: mixed-content blocks fire no onerror in most
   // browsers, so we trip "failed" after the timeout if onLoad never fired.
@@ -214,8 +274,15 @@ function Player({
         ? "bottom-16 left-4"
         : "right-4 top-16";
 
+  // PiP/Fullscreen cluster goes opposite the capture button so they
+  // don't overlap. Capture defaults to top-right → cluster at
+  // bottom-right; capture at bottom-* → cluster at top-right.
+  const pipClusterPositionClass =
+    capturePlacement === "top-right" ? "bottom-4 right-4" : "right-4 top-4";
+
   return (
     <div
+      ref={containerRef}
       className={cn(
         "relative w-full shrink-0 md:flex-1 md:shrink flex aspect-video md:aspect-auto min-h-0 md:h-full flex-col items-center justify-center bg-slate-200/70 dark:bg-slate-800/60 transition-colors overflow-hidden",
         rounded && "rounded-xl"
@@ -302,6 +369,42 @@ function Player({
             overlayOpacityClass
           )}
         />
+      )}
+      {(canPip || canFullscreen) && (
+        <div
+          className={cn(
+            "absolute z-30 flex items-center gap-1 transition-opacity",
+            pipClusterPositionClass,
+            overlayOpacityClass
+          )}
+        >
+          {canPip && (
+            <button
+              type="button"
+              onClick={togglePip}
+              aria-label={isPip ? "Exit picture-in-picture" : "Picture-in-picture"}
+              title={isPip ? "Exit picture-in-picture" : "Picture-in-picture"}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200/70 bg-white/85 text-slate-600 shadow backdrop-blur hover:bg-white dark:border-slate-700/70 dark:bg-slate-900/80 dark:text-slate-100"
+            >
+              <FiMonitor className="h-4 w-4" aria-hidden />
+            </button>
+          )}
+          {canFullscreen && (
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+              title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200/70 bg-white/85 text-slate-600 shadow backdrop-blur hover:bg-white dark:border-slate-700/70 dark:bg-slate-900/80 dark:text-slate-100"
+            >
+              {isFullscreen ? (
+                <FiMinimize className="h-4 w-4" aria-hidden />
+              ) : (
+                <FiMaximize className="h-4 w-4" aria-hidden />
+              )}
+            </button>
+          )}
+        </div>
       )}
       {showSummary && resortSlug && summaryData && summaryStatus === "success" && summaryOpen && (
         <div
