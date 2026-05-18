@@ -22,7 +22,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { FaRegStar, FaStar } from "react-icons/fa";
-import { FiCheck, FiChevronDown, FiChevronLeft, FiChevronRight, FiExternalLink, FiPlus, FiSlash } from "react-icons/fi";
+import { FiChevronDown, FiChevronLeft, FiChevronRight, FiExternalLink, FiSlash } from "react-icons/fi";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import { Resort, Stream, StreamType } from "@/data/Util";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -576,12 +576,31 @@ function Sidebar({
                         className="max-h-0 rounded-lg border border-slate-200/80 bg-white/80 pt-1 dark:border-slate-800/70 dark:bg-slate-900/80 overflow-hidden transition-[max-height,opacity] duration-400 ease-in-out"
                         aria-hidden={!isActiveResort}
                       >
-                        <li className="px-2 pt-3" aria-hidden={!isActiveResort}>
-                          <div className="flex items-center">
-                            {resortSlug ? (
+                        {resortSlug ? (
+                          // Weather row doubles as (a) link to the resort page
+                          // (which surfaces the same weather data we'd otherwise
+                          // need a separate "Resort details" row for) and (b)
+                          // a draggable source — drop it on the dashboard grid
+                          // to pin a weather card. Same DnD pattern as the
+                          // webcam rows below, just with itemType="weather".
+                          <DraggableStreamItem
+                            key={`weather:${resortSlug}`}
+                            streamId={`weather:${resortSlug}`}
+                            itemType="weather"
+                            resort={resort}
+                            resortSlug={resortSlug}
+                            tabIndex={isActiveResort ? 0 : -1}
+                            isActive={isActiveResort}
+                            dragEnabled={gridEnabled}
+                            dragHandleOnly={!desktopDndEnabled}
+                            useManualHandleDrag={isMobileViewport}
+                            onMobileHandleDragStart={onMobileHandleDragStart}
+                            onMobileHandleDragMove={onMobileHandleDragMove}
+                            onMobileHandleDragEnd={onMobileHandleDragEnd}
+                            renderContent={() => (
                               <Link
-                                to={`/resorts/${resortSlug}/weather`}
-                                className="group flex flex-1 items-center justify-between rounded-md px-2 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/60"
+                                to={`/resorts/${resortSlug}`}
+                                className="group flex w-full items-center justify-between rounded-md px-2 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/60"
                                 tabIndex={isActiveResort ? 0 : -1}
                               >
                                 <span>{t(strings.sidebar.weather)}</span>
@@ -590,59 +609,16 @@ function Sidebar({
                                   aria-hidden
                                 />
                               </Link>
-                            ) : (
-                              <span
-                                className="flex flex-1 items-center justify-between rounded-md px-2 py-2 text-sm font-medium text-slate-400 dark:text-slate-500"
-                                aria-disabled="true"
-                              >
-                                {t(strings.sidebar.weather)}
-                              </span>
                             )}
-                            {gridEnabled && resortSlug && onAddToGrid && (() => {
-                              const alreadyPinned = gridStreamIds?.has(`weather:${resortSlug}`) ?? false;
-                              if (alreadyPinned) {
-                                // When already on the dashboard, render a tiny
-                                // muted check that doesn't beg for attention but
-                                // signals "this one's pinned".
-                                return (
-                                  <span
-                                    className="ml-1 inline-flex h-9 w-9 shrink-0 items-center justify-center text-sky-600 dark:text-sky-300"
-                                    aria-hidden
-                                    title={t(strings.sidebar.pinnedToDashboard)}
-                                  >
-                                    <FiCheck className="h-4 w-4" />
-                                  </span>
-                                );
-                              }
-                              return (
-                                <button
-                                  type="button"
-                                  title={t(strings.sidebar.pinWeatherToDashboard)}
-                                  aria-label={t(strings.sidebar.pinWeatherToDashboard)}
-                                  onClick={() => {
-                                    onAddToGrid([
-                                      { type: "weather", resort, resortSlug },
-                                    ]);
-                                  }}
-                                  tabIndex={isActiveResort ? 0 : -1}
-                                  className="ml-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-sky-600 dark:text-slate-500 dark:hover:bg-slate-800/60 dark:hover:text-sky-300"
-                                >
-                                  <FiPlus className="h-4 w-4" aria-hidden />
-                                </button>
-                              );
-                            })()}
-                          </div>
-                        </li>
-                        {resortSlug && (
-                          <li className="px-2" aria-hidden={!isActiveResort}>
-                            <Link
-                              to={`/resorts/${resortSlug}`}
-                              className="flex items-center justify-between rounded-md px-2 py-2 text-sm text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/60"
-                              tabIndex={isActiveResort ? 0 : -1}
+                          />
+                        ) : (
+                          <li className="px-2 pt-3" aria-hidden={!isActiveResort}>
+                            <span
+                              className="flex flex-1 items-center justify-between rounded-md px-2 py-2 text-sm font-medium text-slate-400 dark:text-slate-500"
+                              aria-disabled="true"
                             >
-                              <span>{t(strings.sidebar.details)}</span>
-                              <span className="text-xs uppercase tracking-wide text-slate-400">→</span>
-                            </Link>
+                              {t(strings.sidebar.weather)}
+                            </span>
                           </li>
                         )}
 
