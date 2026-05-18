@@ -1,8 +1,11 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import bundledResorts from "@/data/data";
 import type { Resort } from "@/data/Util";
-import { normalizeJsonResorts } from "@/data/resortJson";
 import { createResortIndex, type ResortIndex } from "@/lib/resortIndex";
+import {
+  DEFAULT_OPEN_SKI_DATA_BASE,
+  loadResortsFromOpenSkiData,
+} from "@/lib/openSkiData";
 
 type ResortDataContextValue = {
   resorts: Resort[];
@@ -10,40 +13,21 @@ type ResortDataContextValue = {
   source: "bundled" | "remote";
 };
 
-const DEFAULT_REMOTE_RESORT_DATA_URL =
-  "https://raw.githubusercontent.com/paulkim-xr/SkiWatch/data/resorts.json";
-
 const ResortDataContext = createContext<ResortDataContextValue | null>(null);
-
-type RemoteResortPayload =
-  | Resort[]
-  | {
-      resorts?: Resort[];
-    };
-
-function isResortArray(value: unknown): value is Resort[] {
-  return Array.isArray(value);
-}
-
-function parseRemoteResorts(payload: RemoteResortPayload): Resort[] | null {
-  if (isResortArray(payload)) {
-    return normalizeJsonResorts(payload);
-  }
-  if (payload && isResortArray(payload.resorts)) {
-    return normalizeJsonResorts(payload.resorts);
-  }
-  return null;
-}
 
 export function ResortDataProvider({ children }: { children: ReactNode }) {
   const [resorts, setResorts] = useState<Resort[]>(bundledResorts);
   const [source, setSource] = useState<"bundled" | "remote">("bundled");
-  const remoteUrl =
+  // `VITE_RESORT_DATA_URL` is now the open-ski-data BASE URL (the loader
+  // walks ${base}/registry/...). Legacy single-JSON URLs are no longer
+  // supported — if you need a different data source, point it at any
+  // mirror that follows open-ski-data's registry layout.
+  const baseUrl =
     (import.meta.env.VITE_RESORT_DATA_URL as string | undefined)?.trim() ||
-    DEFAULT_REMOTE_RESORT_DATA_URL;
+    DEFAULT_OPEN_SKI_DATA_BASE;
 
   useEffect(() => {
-    if (!remoteUrl) {
+    if (!baseUrl) {
       return;
     }
 
@@ -51,20 +35,10 @@ export function ResortDataProvider({ children }: { children: ReactNode }) {
 
     const loadRemoteResorts = async () => {
       try {
-        const response = await fetch(remoteUrl, {
-          cache: "no-store",
-          signal: controller.signal,
-        });
-        if (!response.ok) {
-          throw new Error(`Failed to load remote resort data: ${response.status}`);
-        }
-
-        const payload = (await response.json()) as RemoteResortPayload;
-        const nextResorts = parseRemoteResorts(payload);
+        const nextResorts = await loadResortsFromOpenSkiData(baseUrl, controller.signal);
         if (!nextResorts || nextResorts.length === 0) {
           throw new Error("Remote resort data did not include any resorts");
         }
-
         setResorts(nextResorts);
         setSource("remote");
       } catch (error) {
@@ -79,7 +53,7 @@ export function ResortDataProvider({ children }: { children: ReactNode }) {
     loadRemoteResorts();
 
     return () => controller.abort();
-  }, [remoteUrl]);
+  }, [baseUrl]);
 
   const value = useMemo<ResortDataContextValue>(() => {
     return {

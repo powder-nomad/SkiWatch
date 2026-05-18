@@ -53,6 +53,73 @@ type CachedEntry = {
 
 const cache = new Map<string, CachedEntry>();
 
+// Ridgecast v0.4.1 air-quality response shape (subset we use).
+type RidgecastAirQuality = {
+  place_slug: string;
+  station?: string;
+  observed_at?: string;
+  fetched_at?: string;
+  pm10_ugm3?: number | null;
+  pm25_ugm3?: number | null;
+  khai_value?: number | null;
+  khai_grade?: number | null; // 1=Good, 2=Moderate, 3=Bad, 4=Very Bad (KR MoE)
+};
+
+// Map KHAI 1..4 to a localized grade key the existing AirQualityPanel
+// matches via regex (`/(좋|good)/i`, `/(보통|moderate)/i`, etc.).
+function khaiGradeLabel(grade?: number | null): string | undefined {
+  switch (grade) {
+    case 1:
+      return "좋음 / Good";
+    case 2:
+      return "보통 / Moderate";
+    case 3:
+      return "나쁨 / Bad";
+    case 4:
+      return "매우 나쁨 / Very Bad";
+    default:
+      return undefined;
+  }
+}
+
+// PM2.5 individual grade (KR MoE thresholds, µg/m³):
+//   ≤15 Good · 16–35 Moderate · 36–75 Bad · >75 Very Bad.
+function pm25Label(v?: number | null): string | undefined {
+  if (v == null) return undefined;
+  if (v <= 15) return "좋음 / Good";
+  if (v <= 35) return "보통 / Moderate";
+  if (v <= 75) return "나쁨 / Bad";
+  return "매우 나쁨 / Very Bad";
+}
+
+// PM10 individual grade (KR MoE thresholds, µg/m³):
+//   ≤30 Good · 31–80 Moderate · 81–150 Bad · >150 Very Bad.
+function pm10Label(v?: number | null): string | undefined {
+  if (v == null) return undefined;
+  if (v <= 30) return "좋음 / Good";
+  if (v <= 80) return "보통 / Moderate";
+  if (v <= 150) return "나쁨 / Bad";
+  return "매우 나쁨 / Very Bad";
+}
+
+function adaptResponse(slug: string, raw: RidgecastAirQuality): AirQualityResult {
+  // Derive per-pollutant grades from concentration when present; fall back
+  // to the KHAI composite grade so the badge still renders something
+  // useful when only KHAI is published.
+  const compositeLabel = khaiGradeLabel(raw.khai_grade);
+  const pm25Grade = pm25Label(raw.pm25_ugm3) ?? compositeLabel;
+  const pm10Grade = pm10Label(raw.pm10_ugm3) ?? compositeLabel;
+  const dataTime = raw.observed_at ?? raw.fetched_at;
+  return {
+    resort: { slug, name: slug },
+    daily: {
+      pm25: pm25Grade ? { dataTime, gradeForResort: pm25Grade } : null,
+      pm10: pm10Grade ? { dataTime, gradeForResort: pm10Grade } : null,
+    },
+    weekly: null,
+  };
+}
+
 export function useAirQuality(resortSlug?: string, options?: { enabled?: boolean; cacheMs?: number }) {
   const enabled = options?.enabled ?? true;
   const cacheMs = options?.cacheMs ?? 10 * 60 * 1000;
@@ -80,13 +147,14 @@ export function useAirQuality(resortSlug?: string, options?: { enabled?: boolean
     setStatus("loading");
     setError(undefined);
 
-    fetchWeatherApi(`air-quality/${resortSlug}`, { cache: "no-store" })
+    fetchWeatherApi(`places/${resortSlug}/air-quality`, { cache: "no-store" })
       .then(async (response) => {
         if (!response.ok) {
           const text = await response.text().catch(() => "");
           throw new Error(text || `Failed to load air quality (${response.status})`);
         }
-        return response.json() as Promise<AirQualityResult>;
+        const raw = (await response.json()) as RidgecastAirQuality;
+        return adaptResponse(resortSlug, raw);
       })
       .then((payload) => {
         if (cancelled) return;

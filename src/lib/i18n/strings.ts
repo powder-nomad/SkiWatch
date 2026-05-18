@@ -30,6 +30,21 @@ export const strings = {
       en: "Error loading the Vivaldi webcam.",
       ja: "Vivaldi カメラの読み込み中にエラーが発生しました。",
     }),
+    mixedContentTitle: createText({
+      ko: "이 스트림을 불러올 수 없습니다",
+      en: "Couldn't load this stream",
+      ja: "このストリームを読み込めません",
+    }),
+    mixedContentBody: createText({
+      ko: "브라우저가 이 영상을 차단했습니다. 새 탭에서 직접 열어 보세요.",
+      en: "Your browser blocked this stream. Open it directly in a new tab.",
+      ja: "ブラウザがこのストリームをブロックしました。新しいタブで直接開いてください。",
+    }),
+    openExternally: createText({
+      ko: "새 탭에서 열기",
+      en: "Open in new tab",
+      ja: "新しいタブで開く",
+    }),
   },
   sidebar: {
     collapse: createText({ ko: "접기", en: "Collapse", ja: "折りたたむ" }),
@@ -275,6 +290,10 @@ export const strings = {
     expandTile: createText({ ko: "타일 확장", en: "Expand tile", ja: "タイルを拡大" }),
     removeFromGrid: createText({ ko: "그리드에서 제거", en: "Remove from grid", ja: "グリッドから削除" }),
     resizeTile: createText({ ko: "타일 크기 조절", en: "Resize tile", ja: "タイルサイズを変更" }),
+  },
+  webcam: {
+    multiView: createText({ ko: "멀티 뷰", en: "Multi-view", ja: "マルチビュー" }),
+    clearAll: createText({ ko: "전체 비우기", en: "Clear all", ja: "すべてクリア" }),
   },
   weatherBadge: {
     unavailable: createText({ ko: "날씨 정보를 불러올 수 없습니다", en: "Weather unavailable", ja: "天気情報を取得できません" }),

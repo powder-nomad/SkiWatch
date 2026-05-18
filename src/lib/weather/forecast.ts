@@ -204,6 +204,156 @@ export function parseWeatherResponse(payload: any): WeatherResult {
   };
 }
 
+// ── Ridgecast v2 envelope parsers ─────────────────────────────────────
+// The hook now calls these. The legacy KMA parser above is retained
+// only to keep older imports compiling during the cutover.
+
+export const RIDGECAST_WEATHER_MAP: Record<string, WeatherCondition> = {
+  clear: "clear",
+  mostly_clear: "clear",
+  partly_cloudy: "cloudy",
+  mostly_cloudy: "overcast",
+  overcast: "overcast",
+  rain: "rain",
+  drizzle: "rain",
+  thunderstorm: "rain",
+  snow: "snow",
+  sleet: "mixed",
+  fog: "unknown",
+  unknown: "unknown",
+};
+
+export const RIDGECAST_PRECIP_TYPE_MAP: Record<string, number | undefined> = {
+  none: 0,
+  rain: 1,
+  sleet: 2,
+  snow: 3,
+  drizzle: 5,
+};
+
+export const RIDGECAST_SKY_MAP: Record<string, number | undefined> = {
+  clear: 1,
+  mostly_clear: 1,
+  partly_cloudy: 3,
+  mostly_cloudy: 3,
+  overcast: 4,
+};
+
+export function ridgecastCondition(weather: string | undefined | null): WeatherCondition {
+  if (!weather) return "unknown";
+  return RIDGECAST_WEATHER_MAP[weather] ?? "unknown";
+}
+
+export function ridgecastDateTimeParts(iso: string | undefined): { date: string; time: string; key: string } {
+  if (!iso) return { date: "", time: "", key: "" };
+  // ISO 8601: "2026-05-13T12:00:00Z" or with offset. Strip non-digits to derive
+  // SkiWatch's compact YYYYMMDDhhmm key.
+  const compact = iso.replace(/[^0-9]/g, "");
+  const date = compact.slice(0, 8);
+  const time = compact.slice(8, 12);
+  return { date, time, key: `${date}${time}` };
+}
+
+type RidgecastWeatherPayload = {
+  observed_at?: string;
+  source?: string;
+  temp_c?: number | null;
+  humidity_pct?: number | null;
+  wind_mps?: number | null;
+  precip_mm_1h?: number | null;
+  precip_type?: string | null;
+  snow_cm_1h?: number | null;
+  weather?: string | null;
+};
+
+type RidgecastForecastEntry = {
+  valid_at?: string;
+  temp_c?: number | null;
+  humidity_pct?: number | null;
+  wind_mps?: number | null;
+  precip_mm?: number | null;
+  precip_probability_pct?: number | null;
+  precip_type?: string | null;
+  snow_cm?: number | null;
+  weather?: string | null;
+};
+
+type RidgecastForecastPayload = {
+  forecast?: RidgecastForecastEntry[];
+};
+
+export function parseRidgecastWeather(payload: any): WeatherResult {
+  const data = payload as RidgecastWeatherPayload;
+  const condition = ridgecastCondition(data?.weather);
+  const precipText = getPrecipitationText(
+    data?.precip_type ? RIDGECAST_PRECIP_TYPE_MAP[data.precip_type] : undefined
+  );
+  const { date, time, key } = ridgecastDateTimeParts(data?.observed_at);
+
+  const slot: ForecastSlot = {
+    key: key || "now",
+    date,
+    time,
+    temperature: data?.temp_c ?? undefined,
+    humidity: data?.humidity_pct ?? undefined,
+    windSpeed: data?.wind_mps ?? undefined,
+    precipitation: data?.precip_mm_1h ?? undefined,
+    precipitationSnow: data?.snow_cm_1h ?? undefined,
+    precipitationType: data?.precip_type ? RIDGECAST_PRECIP_TYPE_MAP[data.precip_type] : undefined,
+    sky: data?.weather ? RIDGECAST_SKY_MAP[data.weather] : undefined,
+    condition,
+  };
+
+  const summary: WeatherSummary = {
+    condition,
+    label: CONDITION_LABELS[condition],
+    temperature: slot.temperature,
+    humidity: slot.humidity,
+    windSpeed: slot.windSpeed,
+    precipitationText: precipText,
+    observedAt: data?.observed_at,
+  };
+
+  return { summary, hourly: [slot], raw: payload };
+}
+
+export function parseRidgecastForecast(payload: any): WeatherResult {
+  const data = payload as RidgecastForecastPayload;
+  const entries = Array.isArray(data?.forecast) ? data.forecast : [];
+
+  const slots: ForecastSlot[] = entries.map((entry) => {
+    const condition = ridgecastCondition(entry.weather);
+    const { date, time, key } = ridgecastDateTimeParts(entry.valid_at);
+    return {
+      key: key || (entry.valid_at ?? ""),
+      date,
+      time,
+      temperature: entry.temp_c ?? undefined,
+      humidity: entry.humidity_pct ?? undefined,
+      windSpeed: entry.wind_mps ?? undefined,
+      precipitation: entry.precip_mm ?? undefined,
+      precipitationProbability: clampPercentage(entry.precip_probability_pct ?? undefined),
+      precipitationSnow: entry.snow_cm ?? undefined,
+      precipitationType: entry.precip_type ? RIDGECAST_PRECIP_TYPE_MAP[entry.precip_type] : undefined,
+      sky: entry.weather ? RIDGECAST_SKY_MAP[entry.weather] : undefined,
+      condition,
+    };
+  });
+
+  const first = slots[0];
+  const summary: WeatherSummary = {
+    condition: first?.condition ?? "unknown",
+    label: CONDITION_LABELS[first?.condition ?? "unknown"],
+    temperature: first?.temperature,
+    humidity: first?.humidity,
+    windSpeed: first?.windSpeed,
+    precipitationText: getPrecipitationText(first?.precipitationType),
+    observedAt: entries[0]?.valid_at,
+  };
+
+  return { summary, hourly: slots, raw: payload };
+}
+
 export function formatKstSlot(slot: ForecastSlot) {
   const time = slot.time;
   if (!time) return "";

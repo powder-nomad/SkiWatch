@@ -22,6 +22,7 @@ import { DashboardGrid } from "@/components/ui/DashboardGrid";
 import { type DashboardItem, type DashboardItemType } from "@/components/ui/DashboardTypes";
 import { useI18n } from "@/lib/i18n/context";
 import { createText } from "@/lib/i18n/locales";
+import { strings } from "@/lib/i18n/strings";
 import { useResortData, useResortIndex } from "@/lib/resortData";
 import { getStreamIdentifier } from "@/lib/streamKeys";
 import { cn } from "@/lib/utils";
@@ -574,14 +575,14 @@ function Webcam() {
                 <div className="flex h-full min-h-0 flex-col gap-2 p-3">
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                      {t(createText({ ko: "멀티 뷰", en: "Multi-view", ja: "マルチビュー" }))}: {viewItems.length}
+                      {t(strings.webcam.multiView)}: {viewItems.length}
                     </p>
                     <button
                       type="button"
                       onClick={handleClearGrid}
                       className="inline-flex items-center gap-2 rounded-md border border-slate-200/80 px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800"
                     >
-                      {t(createText({ ko: "전체 비우기", en: "Clear all", ja: "すべてクリア" }))}
+                      {t(strings.webcam.clearAll)}
                     </button>
                   </div>
                   <DashboardGrid

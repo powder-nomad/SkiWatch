@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { buildWeatherApiUrl, withWeatherApiHeaders } from "@/lib/api/weatherClient";
-import { parseWeatherResponse, WeatherResult } from "@/lib/weather/forecast";
-import { getWeatherStation } from "@/lib/weather/stations";
-import { getUltraShortBaseDateTime, getVillageBaseDateTime } from "@/lib/weather/time";
+import {
+  parseRidgecastForecast,
+  parseRidgecastWeather,
+  WeatherResult,
+} from "@/lib/weather/forecast";
 
 type WeatherStatus = "idle" | "loading" | "success" | "error";
 
@@ -117,23 +119,15 @@ async function fetchWeather(slug: string, mode: "forecast" | "now", timeoutMs: n
     return inflight.get(key)!;
   }
 
-  const station = getWeatherStation(slug);
-  if (!station) {
-    throw new WeatherFetchError(`Unknown resort slug: ${slug}`);
-  }
-
-  const slot =
-    mode === "now" ? getUltraShortBaseDateTime("now") : getVillageBaseDateTime();
-  const path = mode === "now" ? `weather/${slug}/current` : `weather/${slug}/forecast`;
-  const url = new URL(buildWeatherApiUrl(path));
-  url.searchParams.set("baseDate", slot.baseDate);
-  url.searchParams.set("baseTime", slot.baseTime);
-  url.searchParams.set("stationId", station.stationId);
+  // Ridgecast v2 routes — no query params, the server handles station/grid
+  // mapping from the place_slug.
+  const path = mode === "now" ? `places/${slug}/weather` : `places/${slug}/forecast`;
+  const url = buildWeatherApiUrl(path);
 
   const promise = acquireSlot()
     .then(async (release) => {
       try {
-        const response = await fetchWithTimeout(url.toString(), timeoutMs, withWeatherApiHeaders());
+        const response = await fetchWithTimeout(url, timeoutMs, withWeatherApiHeaders());
         if (!response.ok) {
           const text = await response.text();
           let payload: unknown = text;
@@ -143,33 +137,19 @@ async function fetchWeather(slug: string, mode: "forecast" | "now", timeoutMs: n
             /* plain text */
           }
           const extractedMessage =
-            typeof payload === "object" && payload && "error" in payload
-              ? String((payload as { error?: string }).error)
-              : text;
+            typeof payload === "object" && payload && "detail" in payload
+              ? String((payload as { detail?: string }).detail)
+              : typeof payload === "object" && payload && "error" in payload
+                ? String((payload as { error?: string }).error)
+                : text;
           throw new WeatherFetchError(
             extractedMessage || `Weather request failed (${response.status})`,
             { status: response.status, payload }
           );
         }
         const json = await response.json();
-        const parsed: WeatherResult = (() => {
-          if (json && typeof json === "object") {
-            const weatherPayload =
-              json.summary && json.hourly
-                ? { summary: json.summary, hourly: json.hourly, raw: json.data ?? json }
-                : json.data ?? json;
-
-            if (
-              weatherPayload &&
-              typeof weatherPayload === "object" &&
-              "hourly" in weatherPayload &&
-              Array.isArray((weatherPayload as any).hourly)
-            ) {
-              return weatherPayload as WeatherResult;
-            }
-          }
-          return parseWeatherResponse(json);
-        })();
+        const parsed: WeatherResult =
+          mode === "now" ? parseRidgecastWeather(json) : parseRidgecastForecast(json);
 
         cache.set(key, { data: parsed, expiresAt: getNextSlotExpiration() });
         return parsed;

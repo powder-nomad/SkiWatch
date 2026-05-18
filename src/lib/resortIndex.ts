@@ -3,14 +3,18 @@ import { Resort, Stream } from "@/data/Util";
 import { getStreamIdentifier } from "@/lib/streamKeys";
 import { LocalizedText, defaultLocale, getLocalizedText } from "@/lib/i18n/locales";
 
+// Homepage URL → slug. Slugs MUST match open-ski-data's place_slug values
+// (Ridgecast keys off these). Four slugs were renamed from the original
+// SkiWatch internals to match open-ski-data: oakvalley→oak-valley,
+// vivaldi→vivaldi-park, wellihilli→wellihilli-park, phoenix→phoenix-park.
 const manualResortSlugs: Record<string, string> = {
   "https://www.konjiamresort.co.kr/main.dev": "konjiam",
   "https://jisanresort.co.kr/w/ski/": "jisan",
-  "https://www.sonohotelsresorts.com/skiboard": "vivaldi",
+  "https://www.sonohotelsresorts.com/skiboard": "vivaldi-park",
   "https://www.elysian.co.kr/": "elysian-gangchon",
-  "https://oakvalley.co.kr/ski/introduction/slope": "oakvalley",
-  "https://www.wellihillipark.com/snowpark": "wellihilli",
-  "https://phoenixhnr.co.kr/page/main/pyeongchang?q%5BhmpgDivCd%5D=PP&page=1&size=4": "phoenix",
+  "https://oakvalley.co.kr/ski/introduction/slope": "oak-valley",
+  "https://www.wellihillipark.com/snowpark": "wellihilli-park",
+  "https://phoenixhnr.co.kr/page/main/pyeongchang?q%5BhmpgDivCd%5D=PP&page=1&size=4": "phoenix-park",
   "https://www.yongpyong.co.kr/kor/skiNboard/introduce.do": "yongpyong",
   "https://www.alpensia.com/main.do": "alpensia",
   "https://www.high1.com/ski/index.do": "high1",

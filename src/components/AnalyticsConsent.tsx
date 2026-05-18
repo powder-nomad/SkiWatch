@@ -159,6 +159,13 @@ export function trackPageView(path: string) {
   if (typeof window === "undefined") return;
   const disabled = (window as any)[GA_DISABLE_KEY];
   if (disabled || typeof window.gtag !== "function") return;
+  if (import.meta.env.DEV) {
+    // Visible-only-in-dev confirmation that events are firing. Look for
+    // "[GA]" in the console to verify gtag is wired and not blocked by
+    // an ad-blocker, before checking GA4 Realtime.
+    // eslint-disable-next-line no-console
+    console.debug("[GA] page_view", { page_path: path });
+  }
   window.gtag("event", "page_view", {
     page_path: path,
   });
@@ -205,6 +212,16 @@ export function AnalyticsConsent() {
         persistConsent("granted");
         setStatus("granted");
         setVisible(false);
+        // Race-safe first page_view: enableAnalytics is fired by the
+        // `[status]` effect, but it's async (loads gtag.js). We await it
+        // here too so we can fire the initial event ourselves — covers
+        // the case where the user grants consent on first visit and
+        // would otherwise miss the landing page_view (no location
+        // change triggers App.tsx's tracker).
+        await enableAnalytics();
+        if (typeof window !== "undefined") {
+          trackPageView(`${window.location.pathname}${window.location.search}`);
+        }
       },
       decline: () => {
         persistConsent("denied");

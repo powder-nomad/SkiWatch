@@ -298,7 +298,7 @@ function AppShell() {
                 </p>
                 <p className="mt-1 flex flex-wrap items-center gap-2">
                   <a
-                    href="https://github.com/paulkim-xr/SkiWatch/issues"
+                    href="https://github.com/powder-nomad/SkiWatch/issues"
                     target="_blank"
                     rel="noreferrer"
                     className="underline"
@@ -325,7 +325,7 @@ function AppShell() {
                   <li>
                     {t(strings.notices.fullLicensePrefix)}{" "}
                     <a
-                      href="https://github.com/paulkim-xr/SkiWatch/blob/main/THIRD_PARTY_NOTICES.md"
+                      href="https://github.com/powder-nomad/SkiWatch/blob/main/THIRD_PARTY_NOTICES.md"
                       target="_blank"
                       rel="noreferrer"
                       className="underline"

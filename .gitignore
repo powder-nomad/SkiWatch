@@ -153,3 +153,10 @@ yarn-debug.log*
 yarn-error.log*
 AGENTS.md
 public/wespJSSDKEncV4.min.js
+
+# Playwright visual-audit output (screenshots + console log)
+visual-audit/
+
+# Local backup of `.env.local` when swapping in the prod key for a
+# `npm run build` — gitignored so the prod key never lands in git.
+.env.local.prod.bak
