@@ -1,0 +1,70 @@
+name: deploy
+
+# Build the Vite SPA and publish dist/ to the `gh-pages` branch so
+# https://powder-nomad.github.io/SkiWatch/ updates automatically on
+# every push to main.
+#
+# Required repo secrets:
+#   VITE_WEATHER_API_KEY  — Ridgecast prod api-key (provisioned with
+#                           https://powder-nomad.github.io in its
+#                           origin_allowlist). Set under Settings →
+#                           Secrets and variables → Actions.
+#
+# Manual run: Actions tab → "deploy" → Run workflow.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        # `npm ci` refuses to resolve anything outside the lockfile,
+        # blocking accidental version drift from supply-chain attacks
+        # that bump transitives mid-deploy.
+        run: npm ci
+
+      - name: Audit (fail on high+)
+        # Block the deploy if `npm audit` finds anything ≥ high.
+        # Moderate-and-below ship; high+ blocks. Adjust if it ever
+        # becomes too noisy in practice.
+        run: npm audit --audit-level=high
+
+      - name: Type-check
+        run: npx tsc -b
+
+      - name: Build
+        env:
+          VITE_WEATHER_API_KEY: ${{ secrets.VITE_WEATHER_API_KEY }}
+        run: npm run build
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          user_name: "github-actions[bot]"
+          user_email: "41898282+github-actions[bot]@users.noreply.github.com"
+          commit_message: "deploy: ${{ github.event.head_commit.message }}"
