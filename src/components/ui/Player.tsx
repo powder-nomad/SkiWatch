@@ -51,9 +51,17 @@ function Player({
   const [isCapturing, setIsCapturing] = useState(false);
   const [overlayActive, setOverlayActive] = useState(false);
   const [loadState, setLoadState] = useState<LoadState>("loading");
+  // Wall-clock timestamp of the last HLS fragment that landed (or last
+  // playback progress event on Safari's native HLS path). Drives the
+  // small "live · 12 s ago" staleness badge. Null until first data.
+  const [lastDataAt, setLastDataAt] = useState<number | null>(null);
+  // Re-rendered every 5 s so the "Xs ago" badge stays roughly accurate
+  // without 1 Hz polling.
+  const [nowTs, setNowTs] = useState(() => Date.now());
 
   useEffect(() => {
     // Reset whenever the underlying stream changes.
+    setLastDataAt(null);
     if (stream.type === StreamType.Unavailable) {
       setLoadState("loading");
       return;
@@ -69,28 +77,44 @@ function Player({
         const onHlsError = (_evt: unknown, data: { fatal?: boolean }) => {
           if (data?.fatal) setLoadState("failed");
         };
+        const onFragLoaded = () => setLastDataAt(Date.now());
         hls.on(Hls.Events.ERROR, onHlsError);
+        hls.on(Hls.Events.FRAG_LOADED, onFragLoaded);
         const onPlaying = () => setLoadState("playing");
         video.addEventListener("playing", onPlaying);
         return () => {
           hls.off(Hls.Events.ERROR, onHlsError);
+          hls.off(Hls.Events.FRAG_LOADED, onFragLoaded);
           video.removeEventListener("playing", onPlaying);
           hls.destroy();
         };
       } else {
         // Native HLS path (Safari). The video element fires error/playing.
+        // No FRAG_LOADED event here — use `timeupdate` as a proxy signal
+        // that bytes are flowing.
         video.src = stream.url;
         const onError = () => setLoadState("failed");
         const onPlaying = () => setLoadState("playing");
+        const onTimeUpdate = () => setLastDataAt(Date.now());
         video.addEventListener("error", onError);
         video.addEventListener("playing", onPlaying);
+        video.addEventListener("timeupdate", onTimeUpdate);
         return () => {
           video.removeEventListener("error", onError);
           video.removeEventListener("playing", onPlaying);
+          video.removeEventListener("timeupdate", onTimeUpdate);
         };
       }
     }
   }, [stream]);
+
+  // Tick `nowTs` while we have data so the "Xs ago" badge stays
+  // current. No-op until first frag/progress lands.
+  useEffect(() => {
+    if (lastDataAt == null) return;
+    const id = setInterval(() => setNowTs(Date.now()), 5000);
+    return () => clearInterval(id);
+  }, [lastDataAt]);
 
   // Iframe load timer: mixed-content blocks fire no onerror in most
   // browsers, so we trip "failed" after the timeout if onLoad never fired.
@@ -270,6 +294,15 @@ function Player({
           {captureError}
         </div>
       )}
+      {stream.type === StreamType.HLS && lastDataAt != null && (
+        <StalenessBadge
+          ageMs={nowTs - lastDataAt}
+          className={cn(
+            "pointer-events-none absolute left-3 bottom-3 z-30 transition-opacity",
+            overlayOpacityClass
+          )}
+        />
+      )}
       {showSummary && resortSlug && summaryData && summaryStatus === "success" && summaryOpen && (
         <div
           className={`pointer-events-auto absolute left-4 top-4 z-[999] rounded-2xl border border-white/40 bg-white/90 px-4 py-3 text-sm text-slate-700 shadow-lg backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/90 dark:text-slate-200 transition-opacity ${overlayOpacityClass}`}
@@ -330,4 +363,37 @@ export default Player;
 
 function isMediaQueryList(value: unknown): value is MediaQueryList {
   return typeof (value as MediaQueryList)?.matches === "boolean";
+}
+
+// Renders a small "● live · 12 s" / "● 4 min ago" pill so users know
+// whether the HLS feed is current or frozen. Thresholds:
+//   < 15 s  → "live"  (green)
+//   15-60 s → "{N} s ago"  (amber)
+//   ≥ 60 s  → "{N} min ago"  (red)
+function StalenessBadge({ ageMs, className = "" }: { ageMs: number; className?: string }) {
+  const ageSec = Math.max(0, Math.floor(ageMs / 1000));
+  const live = ageSec < 15;
+  const warn = !live && ageSec < 60;
+  const dotClass = live
+    ? "bg-emerald-400"
+    : warn
+      ? "bg-amber-400"
+      : "bg-rose-500";
+  const label = live
+    ? "live"
+    : ageSec < 60
+      ? `${ageSec}s ago`
+      : `${Math.floor(ageSec / 60)} min ago`;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-white backdrop-blur",
+        className,
+      )}
+      title={`Last fragment ${ageSec}s ago`}
+    >
+      <span className={cn("inline-block h-2 w-2 rounded-full", dotClass, live && "animate-pulse")} />
+      {label}
+    </span>
+  );
 }
