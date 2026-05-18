@@ -55,6 +55,11 @@ export const strings = {
       en: "Pin weather to dashboard",
       ja: "天気をダッシュボードに追加",
     }),
+    pinnedToDashboard: createText({
+      ko: "대시보드에 추가됨",
+      en: "Pinned to dashboard",
+      ja: "ダッシュボードに追加済み",
+    }),
     details: createText({ ko: "리조트 정보", en: "Resort details", ja: "リゾート情報" }),
     newTab: createText({ ko: "새 탭", en: "New tab", ja: "新しいタブ" }),
     externalTooltip: createText({

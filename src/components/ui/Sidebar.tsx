@@ -22,7 +22,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { FaRegStar, FaStar } from "react-icons/fa";
-import { FiChevronDown, FiChevronLeft, FiChevronRight, FiExternalLink, FiPlus, FiSlash } from "react-icons/fi";
+import { FiCheck, FiChevronDown, FiChevronLeft, FiChevronRight, FiExternalLink, FiPlus, FiSlash } from "react-icons/fi";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import { Resort, Stream, StreamType } from "@/data/Util";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -577,15 +577,18 @@ function Sidebar({
                         aria-hidden={!isActiveResort}
                       >
                         <li className="px-2 pt-3" aria-hidden={!isActiveResort}>
-                          <div className="flex items-stretch gap-1">
+                          <div className="flex items-center">
                             {resortSlug ? (
                               <Link
                                 to={`/resorts/${resortSlug}/weather`}
-                                className="flex flex-1 items-center justify-between rounded-md px-2 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/60"
+                                className="group flex flex-1 items-center justify-between rounded-md px-2 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/60"
                                 tabIndex={isActiveResort ? 0 : -1}
                               >
                                 <span>{t(strings.sidebar.weather)}</span>
-                                <span className="text-xs uppercase tracking-wide text-slate-400">→</span>
+                                <FiChevronRight
+                                  className="h-4 w-4 text-slate-400 transition-transform group-hover:translate-x-0.5 dark:text-slate-500"
+                                  aria-hidden
+                                />
                               </Link>
                             ) : (
                               <span
@@ -597,7 +600,20 @@ function Sidebar({
                             )}
                             {gridEnabled && resortSlug && onAddToGrid && (() => {
                               const alreadyPinned = gridStreamIds?.has(`weather:${resortSlug}`) ?? false;
-                              if (alreadyPinned) return null;
+                              if (alreadyPinned) {
+                                // When already on the dashboard, render a tiny
+                                // muted check that doesn't beg for attention but
+                                // signals "this one's pinned".
+                                return (
+                                  <span
+                                    className="ml-1 inline-flex h-9 w-9 shrink-0 items-center justify-center text-sky-600 dark:text-sky-300"
+                                    aria-hidden
+                                    title={t(strings.sidebar.pinnedToDashboard)}
+                                  >
+                                    <FiCheck className="h-4 w-4" />
+                                  </span>
+                                );
+                              }
                               return (
                                 <button
                                   type="button"
@@ -609,7 +625,7 @@ function Sidebar({
                                     ]);
                                   }}
                                   tabIndex={isActiveResort ? 0 : -1}
-                                  className="inline-flex items-center justify-center rounded-md border border-sky-200/80 bg-sky-50 px-2 text-sky-700 hover:bg-sky-100 dark:border-sky-700/60 dark:bg-sky-900/30 dark:text-sky-200 dark:hover:bg-sky-900/40"
+                                  className="ml-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-sky-600 dark:text-slate-500 dark:hover:bg-slate-800/60 dark:hover:text-sky-300"
                                 >
                                   <FiPlus className="h-4 w-4" aria-hidden />
                                 </button>
