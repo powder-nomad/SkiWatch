@@ -191,7 +191,7 @@ function DashboardGridTile({ item, maxCols, maxRows, onRemove, onToggleSpan, onR
             <span className="line-clamp-2">{item.label}</span>
           </div>
         </div>
-        <div className="absolute right-2 top-2 z-20 flex items-center gap-1 text-slate-500 dark:text-slate-200">
+        <div className="absolute left-2 top-2 z-20 flex items-center gap-1 text-slate-500 dark:text-slate-200">
           <button
             type="button"
             aria-label={t(strings.dashboardGrid.dragToReorder)}
@@ -212,7 +212,7 @@ function DashboardGridTile({ item, maxCols, maxRows, onRemove, onToggleSpan, onR
               <FiMoreVertical className="h-4 w-4" />
             </button>
             {menuOpen && (
-              <div className="absolute right-0 top-10 z-[120] min-w-40 rounded-xl border border-slate-200/80 bg-white/95 p-1.5 shadow-lg backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/95">
+              <div className="absolute left-0 top-10 z-[120] min-w-40 rounded-xl border border-slate-200/80 bg-white/95 p-1.5 shadow-lg backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/95">
                 <button
                   type="button"
                   onClick={() => {
