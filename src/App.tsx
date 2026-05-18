@@ -1,11 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { FiMoon, FiSun, FiMoreVertical, FiShield, FiInfo, FiCamera, FiBarChart2, FiMap } from "react-icons/fi";
-import Webcam from "@/components/Webcam";
-import Slopes from "@/components/Slopes";
-import ResortListPage from "@/components/ResortListPage";
-import ResortDetailPage from "@/components/ResortDetailPage";
-import ResortWeatherPage from "@/components/ResortWeatherPage";
+// Route-level code-split. The five page components below are the only
+// places hls.js / video.js / @dnd-kit / @tanstack/react-table are
+// imported, so making them lazy lets Vite split them into their own
+// chunks. Initial JS drops to: shell + navigation + the chunk for the
+// route the user actually landed on.
+const Webcam = lazy(() => import("@/components/Webcam"));
+const Slopes = lazy(() => import("@/components/Slopes"));
+const ResortListPage = lazy(() => import("@/components/ResortListPage"));
+const ResortDetailPage = lazy(() => import("@/components/ResortDetailPage"));
+const ResortWeatherPage = lazy(() => import("@/components/ResortWeatherPage"));
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { useI18n } from "@/lib/i18n/context";
 import { strings } from "@/lib/i18n/strings";
@@ -223,16 +228,24 @@ function AppShell() {
         </div>
       </header>
       <div className="flex-1 min-h-0 flex overflow-hidden">
-        <Routes>
-          <Route path="/" element={<Navigate to="/webcams" replace />} />
-          <Route path="/webcams" element={<Webcam />} />
-          <Route path="/webcams/m/*" element={<Webcam />} />
-          <Route path="/webcams/:resort/:stream" element={<Webcam />} />
-          <Route path="/slopes" element={<Slopes />} />
-          <Route path="/resorts" element={<ResortListPage />} />
-          <Route path="/resorts/:slug" element={<ResortDetailPage />} />
-          <Route path="/resorts/:slug/weather" element={<ResortWeatherPage />} />
-        </Routes>
+        <Suspense
+          fallback={
+            <div className="flex-1 grid place-items-center text-sm text-slate-400 dark:text-slate-500">
+              {t(strings.resortPage?.weatherLoading) || "Loading…"}
+            </div>
+          }
+        >
+          <Routes>
+            <Route path="/" element={<Navigate to="/webcams" replace />} />
+            <Route path="/webcams" element={<Webcam />} />
+            <Route path="/webcams/m/*" element={<Webcam />} />
+            <Route path="/webcams/:resort/:stream" element={<Webcam />} />
+            <Route path="/slopes" element={<Slopes />} />
+            <Route path="/resorts" element={<ResortListPage />} />
+            <Route path="/resorts/:slug" element={<ResortDetailPage />} />
+            <Route path="/resorts/:slug/weather" element={<ResortWeatherPage />} />
+          </Routes>
+        </Suspense>
       </div>
       {showWeatherAttribution && (
         <footer className="shrink-0 border-t border-slate-200/70 bg-white/80 px-4 py-2 pb-[max(env(safe-area-inset-bottom),0px)] text-center text-xs text-slate-500 backdrop-blur dark:border-slate-800/70 dark:bg-slate-900/80 dark:text-slate-300">
