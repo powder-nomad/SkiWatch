@@ -54,6 +54,11 @@ jobs:
       - name: Type-check
         run: npx tsc -b
 
+      - name: Unit tests
+        # Pure functions only for now (i18n + stream keys). Component
+        # tests (RTL/jsdom) are intentionally deferred.
+        run: npm run test:run
+
       - name: Guard — VITE_WEATHER_API_KEY must be set
         # Fail fast rather than shipping a bundle with no api key
         # (the deployed site would 401 on every weather request).
