@@ -88,7 +88,11 @@ function Webcam() {
 
   const gridIds = useMemo(() => viewItems.map((item) => item.id), [viewItems]);
   const gridIdSet = useMemo(() => new Set(gridIds), [gridIds]);
-  const isGridMode = viewItems.length > 1;
+  // Grid mode whenever we have >1 tile OR any non-webcam tile (weather
+  // / future slopes widgets). Single-cam still falls back to the big
+  // player slot — a lone weather card needs the dashboard layout.
+  const isGridMode =
+    viewItems.length > 1 || viewItems.some((item) => item.type !== "webcam");
   const { setNodeRef: baseSetPlayerDropRef, isOver: isPlayerDropOver } = useDroppable({ id: PLAYER_DROP_ID });
   const { setNodeRef: baseSetGridDropRef, isOver: isGridDropOver } = useDroppable({ id: GRID_DROP_ID });
 
@@ -427,7 +431,10 @@ function Webcam() {
     effectiveOverId: string | null
   ) => {
     if (!effectiveOverId) return;
-    if (payload.type !== "webcam" || !payload.stream) return;
+    // Weather payloads have no stream by design — only reject webcams
+    // that are missing their stream payload.
+    if (payload.type === "webcam" && !payload.stream) return;
+    if (payload.type !== "webcam" && payload.type !== "weather") return;
 
     if (effectiveOverId === GRID_DROP_ID || gridIds.includes(effectiveOverId)) {
       const nextItems = appendPayloadItems(viewItems, [payload]);

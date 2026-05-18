@@ -207,7 +207,7 @@ function DashboardGridTile({ item, maxCols, maxRows, isMobileViewport = false, o
           <button
             type="button"
             aria-label={t(strings.dashboardGrid.dragToReorder)}
-            className="inline-flex h-8 w-8 touch-none items-center justify-center rounded-md border border-slate-200/60 bg-white/90 p-0 shadow-sm backdrop-blur hover:bg-white dark:border-slate-700/70 dark:bg-slate-900/80 sm:h-9 sm:w-9"
+            className="inline-flex h-8 w-8 touch-none items-center justify-center rounded-md border border-slate-200/60 bg-white/90 p-0 shadow-sm backdrop-blur hover:bg-white dark:border-slate-700/70 dark:bg-slate-900/80"
             {...attributes}
             {...listeners}
           >
@@ -219,7 +219,7 @@ function DashboardGridTile({ item, maxCols, maxRows, isMobileViewport = false, o
               aria-label={t(strings.dashboardGrid.moreOptions)}
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((open) => !open)}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200/60 bg-white/90 p-0 shadow-sm backdrop-blur hover:bg-white dark:border-slate-700/70 dark:bg-slate-900/80 sm:h-9 sm:w-9"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200/60 bg-white/90 p-0 shadow-sm backdrop-blur hover:bg-white dark:border-slate-700/70 dark:bg-slate-900/80"
             >
               <FiMoreVertical className="h-4 w-4" />
             </button>

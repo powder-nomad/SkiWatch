@@ -293,24 +293,45 @@ function Player({
   };
 
   const overlayOpacityClass = overlayActive ? "opacity-100" : "opacity-30";
+  // Overlay edge padding: tighter in tile mode (compactCapture) so the
+  // Player's right-side cluster lines up vertically with the
+  // DashboardGrid tile's left-side drag/menu cluster (which sits at
+  // `top-2`). Standalone Player (resort weather page) keeps 16 px.
+  const overlayEdge = compactCapture
+    ? {
+        topRight: "right-2 top-2",
+        bottomRight: "bottom-2 right-2",
+        bottomLeft: "bottom-2 left-2",
+        errorBottomRight: "bottom-12 right-2",
+        errorBottomLeft: "bottom-12 left-2",
+        errorTopRight: "right-2 top-12",
+      }
+    : {
+        topRight: "right-4 top-4",
+        bottomRight: "bottom-4 right-4",
+        bottomLeft: "bottom-4 left-4",
+        errorBottomRight: "bottom-16 right-4",
+        errorBottomLeft: "bottom-16 left-4",
+        errorTopRight: "right-4 top-16",
+      };
   const capturePositionClass =
     capturePlacement === "bottom-right"
-      ? "bottom-4 right-4"
+      ? overlayEdge.bottomRight
       : capturePlacement === "bottom-left"
-        ? "bottom-4 left-4"
-        : "right-4 top-4";
+        ? overlayEdge.bottomLeft
+        : overlayEdge.topRight;
   const captureErrorPositionClass =
     capturePlacement === "bottom-right"
-      ? "bottom-16 right-4"
+      ? overlayEdge.errorBottomRight
       : capturePlacement === "bottom-left"
-        ? "bottom-16 left-4"
-        : "right-4 top-16";
+        ? overlayEdge.errorBottomLeft
+        : overlayEdge.errorTopRight;
 
   // PiP/Fullscreen cluster goes opposite the capture button so they
   // don't overlap. Capture defaults to top-right → cluster at
   // bottom-right; capture at bottom-* → cluster at top-right.
   const pipClusterPositionClass =
-    capturePlacement === "top-right" ? "bottom-4 right-4" : "right-4 top-4";
+    capturePlacement === "top-right" ? overlayEdge.bottomRight : overlayEdge.topRight;
 
   return (
     <div
