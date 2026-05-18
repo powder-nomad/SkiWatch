@@ -99,7 +99,14 @@ export function createResortIndex(resorts: Resort[]): ResortIndex {
   });
 
   const entryBySlug = new Map(resortEntries.map((entry) => [entry.slug, entry]));
-  const entryByHomepage = new Map(resortEntries.map((entry) => [entry.resort.homepage, entry]));
+  // Keyed by Resort object identity rather than homepage. Open-ski-data
+  // place.json files frequently have homepage:null (CA/CH/JP placeholders
+  // — 13 of 26 places at the time of writing), so all those resorts
+  // would collapse to the same "" key. Identity keys avoid the collision
+  // and keep getResortSlug correct for every resort.
+  const entryByResort = new Map<Resort, ResortEntry>(
+    resortEntries.map((entry) => [entry.resort, entry])
+  );
   const streamRouteById = new Map<string, { resortSlug: string; streamSlug: string }>();
   const streamById = new Map<
     string,
@@ -121,7 +128,7 @@ export function createResortIndex(resorts: Resort[]): ResortIndex {
   return {
     resortEntries,
     findResortBySlug: (slug: string) => entryBySlug.get(slug),
-    getResortSlug: (resort: Resort) => entryByHomepage.get(resort.homepage)?.slug,
+    getResortSlug: (resort: Resort) => entryByResort.get(resort)?.slug,
     findStreamBySlugs: (resortSlug: string, streamSlug: string) => {
       const resortEntry = entryBySlug.get(resortSlug);
       if (!resortEntry) {
@@ -144,11 +151,11 @@ export function createResortIndex(resorts: Resort[]): ResortIndex {
       if (route) {
         return route;
       }
-      const entry = entryByHomepage.get(resort.homepage);
+      const entry = entryByResort.get(resort);
       if (!entry) {
         return undefined;
       }
-      const streamEntry = entry.streams.find((item) => item.id === streamId);
+      const streamEntry = entry.streams.find((item: StreamEntry) => item.id === streamId);
       if (!streamEntry) {
         return undefined;
       }

@@ -28,7 +28,6 @@ import { useResortData, useResortIndex } from "@/lib/resortData";
 import { getStreamIdentifier } from "@/lib/streamKeys";
 import { useFavorites } from "@/hooks/useFavorites";
 import { FaStar } from "react-icons/fa";
-import { FiCloud } from "react-icons/fi";
 import { cn } from "@/lib/utils";
 
 type WebcamParams = {
@@ -64,14 +63,22 @@ function Webcam() {
   const playerDropElementRef = useRef<HTMLDivElement | null>(null);
   const gridDropElementRef = useRef<HTMLDivElement | null>(null);
 
-  const resortOrder = useMemo(() => resorts.map((r) => r.homepage), []);
+  // Key by slug, not homepage. Open-ski-data placeholders frequently
+  // have homepage:null → "" so multiple resorts collapse to the same
+  // key and Sidebar shows duplicates (the /resorts → /webcams "wall
+  // of Eiger" bug).
+  const resortOrder = useMemo(
+    () => resorts.map((r) => index.getResortSlug(r) ?? r.homepage),
+    [resorts, index],
+  );
   const streamOrder = useMemo(() => {
     const next: Record<string, string[]> = {};
     resorts.forEach((resort) => {
-      next[resort.homepage] = resort.streams.map((stream) => getStreamIdentifier(resort, stream));
+      const key = index.getResortSlug(resort) ?? resort.homepage;
+      next[key] = resort.streams.map((stream) => getStreamIdentifier(resort, stream));
     });
     return next;
-  }, []);
+  }, [resorts, index]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -370,28 +377,6 @@ function Webcam() {
     navigateForItems([]);
   };
 
-  // Add a weather card for the currently-selected resort. No-op if no
-  // resort is selected yet, or if that resort's weather card is already
-  // on the dashboard.
-  const handleAddWeatherForSelected = () => {
-    if (!selectedResortSlug) return;
-    const entry = index.findResortBySlug(selectedResortSlug);
-    if (!entry) return;
-    const nextItems = appendPayloadItems(viewItems, [
-      {
-        type: "weather",
-        resort: entry.resort,
-        resortSlug: selectedResortSlug,
-      },
-    ]);
-    if (nextItems !== viewItems) {
-      setViewItems(nextItems);
-    }
-  };
-  const weatherTileId = selectedResortSlug ? `weather:${selectedResortSlug}` : undefined;
-  const canAddWeather =
-    Boolean(weatherTileId) && !viewItems.some((item) => item.id === weatherTileId);
-
   // Favourites bulk-add: resolves each starred stream id via the resort
   // index, drops the ones already in the view, and pipes the rest into
   // the existing handleAddToGrid flow. Same UX as adding one-by-one from
@@ -657,17 +642,6 @@ function Webcam() {
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      {canAddWeather && (
-                        <button
-                          type="button"
-                          onClick={handleAddWeatherForSelected}
-                          title="Add weather card for current resort"
-                          className="inline-flex items-center gap-2 rounded-md border border-sky-200/80 bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-800 shadow-sm hover:bg-sky-100 dark:border-sky-700/70 dark:bg-sky-900/30 dark:text-sky-100 dark:hover:bg-sky-900/40"
-                        >
-                          <FiCloud className="h-4 w-4" aria-hidden />
-                          <span className="hidden sm:inline">Add weather</span>
-                        </button>
-                      )}
                       {favouritesNotInView.length > 0 && (
                         <button
                           type="button"

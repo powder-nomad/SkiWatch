@@ -22,7 +22,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { FaRegStar, FaStar } from "react-icons/fa";
-import { FiChevronDown, FiChevronLeft, FiChevronRight, FiExternalLink, FiSlash } from "react-icons/fi";
+import { FiChevronDown, FiChevronLeft, FiChevronRight, FiExternalLink, FiPlus, FiSlash } from "react-icons/fi";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import { Resort, Stream, StreamType } from "@/data/Util";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -199,22 +199,31 @@ function Sidebar({
   );
 
   const orderedResorts = useMemo(() => {
-    const lookup = new Map(data.map((resort) => [resort.homepage, resort]));
+    // Key by slug. Homepage collides for open-ski-data placeholder
+    // places that have homepage:null (CA/CH/JP), which produced the
+    // "wall of Eiger" duplicates on /resorts → /webcams nav.
+    const lookup = new Map(
+      data.map((resort) => [getResortSlug(resort) ?? resort.homepage, resort])
+    );
     return resortOrder.map((id) => lookup.get(id)).filter(Boolean) as Resort[];
-  }, [data, resortOrder]);
+  }, [data, resortOrder, getResortSlug]);
 
   const filteredResorts = useMemo(() => {
     if (!normalizedQuery) {
-      return orderedResorts.map((resort) => ({
-        resort,
-        streamIds: streamOrder[resort.homepage] ?? resort.streams.map((s) => getStreamIdentifier(resort, s)),
-      }));
+      return orderedResorts.map((resort) => {
+        const key = getResortSlug(resort) ?? resort.homepage;
+        return {
+          resort,
+          streamIds: streamOrder[key] ?? resort.streams.map((s) => getStreamIdentifier(resort, s)),
+        };
+      });
     }
     return orderedResorts
       .map((resort) => {
         const resortName = t(resort.name);
         const resortMatches = matchesQuery(resortName);
-        const baseIds = streamOrder[resort.homepage] ?? resort.streams.map((s) => getStreamIdentifier(resort, s));
+        const key = getResortSlug(resort) ?? resort.homepage;
+        const baseIds = streamOrder[key] ?? resort.streams.map((s) => getStreamIdentifier(resort, s));
         if (resortMatches) {
           return { resort, streamIds: baseIds };
         }
@@ -568,19 +577,45 @@ function Sidebar({
                         aria-hidden={!isActiveResort}
                       >
                         <li className="px-2 pt-3" aria-hidden={!isActiveResort}>
-                          <button
-                            className="flex w-full items-center justify-between rounded-md px-2 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/60"
-                            onClick={() => {
-                              window.open(resort.weather, "_blank", "noopener,noreferrer");
-                            }}
-                            tabIndex={isActiveResort ? 0 : -1}
-                          >
-                            {t(strings.sidebar.weather)}
-                            <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium bg-slate-200/60 text-slate-600 dark:bg-slate-800/60 dark:text-slate-300">
-                              <FiExternalLink className="h-3 w-3" />
-                              {t(strings.sidebar.newTab)}
-                            </span>
-                          </button>
+                          <div className="flex items-stretch gap-1">
+                            {resortSlug ? (
+                              <Link
+                                to={`/resorts/${resortSlug}/weather`}
+                                className="flex flex-1 items-center justify-between rounded-md px-2 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/60"
+                                tabIndex={isActiveResort ? 0 : -1}
+                              >
+                                <span>{t(strings.sidebar.weather)}</span>
+                                <span className="text-xs uppercase tracking-wide text-slate-400">→</span>
+                              </Link>
+                            ) : (
+                              <span
+                                className="flex flex-1 items-center justify-between rounded-md px-2 py-2 text-sm font-medium text-slate-400 dark:text-slate-500"
+                                aria-disabled="true"
+                              >
+                                {t(strings.sidebar.weather)}
+                              </span>
+                            )}
+                            {gridEnabled && resortSlug && onAddToGrid && (() => {
+                              const alreadyPinned = gridStreamIds?.has(`weather:${resortSlug}`) ?? false;
+                              if (alreadyPinned) return null;
+                              return (
+                                <button
+                                  type="button"
+                                  title={t(strings.sidebar.pinWeatherToDashboard)}
+                                  aria-label={t(strings.sidebar.pinWeatherToDashboard)}
+                                  onClick={() => {
+                                    onAddToGrid([
+                                      { type: "weather", resort, resortSlug },
+                                    ]);
+                                  }}
+                                  tabIndex={isActiveResort ? 0 : -1}
+                                  className="inline-flex items-center justify-center rounded-md border border-sky-200/80 bg-sky-50 px-2 text-sky-700 hover:bg-sky-100 dark:border-sky-700/60 dark:bg-sky-900/30 dark:text-sky-200 dark:hover:bg-sky-900/40"
+                                >
+                                  <FiPlus className="h-4 w-4" aria-hidden />
+                                </button>
+                              );
+                            })()}
+                          </div>
                         </li>
                         {resortSlug && (
                           <li className="px-2" aria-hidden={!isActiveResort}>
