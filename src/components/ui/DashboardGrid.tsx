@@ -225,17 +225,19 @@ function DashboardGridTile({ item, maxCols, maxRows, isMobileViewport = false, o
             </button>
             {menuOpen && (
               <div className="absolute left-0 top-10 z-[120] min-w-40 rounded-xl border border-slate-200/80 bg-white/95 p-1.5 shadow-lg backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/95">
-                <button
-                  type="button"
-                  onClick={() => {
-                    onToggleSpan();
-                    setMenuOpen(false);
-                  }}
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800"
-                >
-                  {item.colSpan > 1 ? <FiMinimize2 className="h-4 w-4" /> : <FiMaximize2 className="h-4 w-4" />}
-                  <span>{item.colSpan > 1 ? t(strings.dashboardGrid.shrinkTile) : t(strings.dashboardGrid.expandTile)}</span>
-                </button>
+                {!isMobileViewport && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onToggleSpan();
+                      setMenuOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-800"
+                  >
+                    {item.colSpan > 1 ? <FiMinimize2 className="h-4 w-4" /> : <FiMaximize2 className="h-4 w-4" />}
+                    <span>{item.colSpan > 1 ? t(strings.dashboardGrid.shrinkTile) : t(strings.dashboardGrid.expandTile)}</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => {

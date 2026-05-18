@@ -1,16 +1,18 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { FiMoon, FiSun, FiMoreVertical, FiShield, FiInfo, FiCamera, FiBarChart2, FiMap } from "react-icons/fi";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
 // Route-level code-split. The five page components below are the only
 // places hls.js / video.js / @dnd-kit / @tanstack/react-table are
 // imported, so making them lazy lets Vite split them into their own
-// chunks. Initial JS drops to: shell + navigation + the chunk for the
-// route the user actually landed on.
-const Webcam = lazy(() => import("@/components/Webcam"));
-const Slopes = lazy(() => import("@/components/Slopes"));
-const ResortListPage = lazy(() => import("@/components/ResortListPage"));
-const ResortDetailPage = lazy(() => import("@/components/ResortDetailPage"));
-const ResortWeatherPage = lazy(() => import("@/components/ResortWeatherPage"));
+// chunks. `lazyWithRetry` reloads the tab once when a chunk URL 404s
+// — protects users whose stale index-*.js references hashes that no
+// longer exist after a GitHub Pages deploy.
+const Webcam = lazyWithRetry(() => import("@/components/Webcam"));
+const Slopes = lazyWithRetry(() => import("@/components/Slopes"));
+const ResortListPage = lazyWithRetry(() => import("@/components/ResortListPage"));
+const ResortDetailPage = lazyWithRetry(() => import("@/components/ResortDetailPage"));
+const ResortWeatherPage = lazyWithRetry(() => import("@/components/ResortWeatherPage"));
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { useI18n } from "@/lib/i18n/context";
 import { strings } from "@/lib/i18n/strings";

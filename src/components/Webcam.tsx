@@ -28,6 +28,7 @@ import { useResortData, useResortIndex } from "@/lib/resortData";
 import { getStreamIdentifier } from "@/lib/streamKeys";
 import { useFavorites } from "@/hooks/useFavorites";
 import { FaStar } from "react-icons/fa";
+import { FiCloud } from "react-icons/fi";
 import { cn } from "@/lib/utils";
 
 type WebcamParams = {
@@ -45,7 +46,8 @@ function Webcam() {
   const navigate = useNavigate();
   const { t } = useI18n();
   const { resorts } = useResortData();
-  const { findStreamById, findStreamBySlugs, getResortSlug, getRouteForStream, getRouteForStreamId } = useResortIndex();
+  const index = useResortIndex();
+  const { findStreamById, findStreamBySlugs, getResortSlug, getRouteForStream, getRouteForStreamId } = index;
 
   const [currentStream, setCurrentStream] = useState<Stream | undefined>();
   const [selectedStreamId, setSelectedStreamId] = useState<string | undefined>();
@@ -274,18 +276,37 @@ function Webcam() {
   ) => {
     const next = [...sourceItems];
     payloadItems.forEach((payload) => {
-      if (payload.type !== "webcam" || !payload.stream || !payload.streamId) return;
-      if (next.some((item) => item.id === payload.streamId)) return;
       const resortSlug = payload.resortSlug ?? getResortSlug(payload.resort);
       if (!resortSlug) return;
-      next.push(
-        toWebcamItem({
-          resort: payload.resort,
-          stream: payload.stream,
-          streamId: payload.streamId,
+
+      if (payload.type === "webcam") {
+        if (!payload.stream || !payload.streamId) return;
+        if (next.some((item) => item.id === payload.streamId)) return;
+        next.push(
+          toWebcamItem({
+            resort: payload.resort,
+            stream: payload.stream,
+            streamId: payload.streamId,
+            resortSlug,
+          })
+        );
+        return;
+      }
+
+      if (payload.type === "weather") {
+        // One weather card per resort. Stable id lets the dedup check
+        // catch repeated "add weather" clicks on the same resort.
+        const id = `weather:${resortSlug}`;
+        if (next.some((item) => item.id === id)) return;
+        next.push({
+          id,
+          type: "weather",
           resortSlug,
-        })
-      );
+          label: `${t(payload.resort.name)} · ${t(strings.resortPage.weather)}`,
+          colSpan: 1,
+          rowSpan: 1,
+        });
+      }
     });
     return next;
   };
@@ -348,6 +369,28 @@ function Webcam() {
     syncSelectionFromItems([]);
     navigateForItems([]);
   };
+
+  // Add a weather card for the currently-selected resort. No-op if no
+  // resort is selected yet, or if that resort's weather card is already
+  // on the dashboard.
+  const handleAddWeatherForSelected = () => {
+    if (!selectedResortSlug) return;
+    const entry = index.findResortBySlug(selectedResortSlug);
+    if (!entry) return;
+    const nextItems = appendPayloadItems(viewItems, [
+      {
+        type: "weather",
+        resort: entry.resort,
+        resortSlug: selectedResortSlug,
+      },
+    ]);
+    if (nextItems !== viewItems) {
+      setViewItems(nextItems);
+    }
+  };
+  const weatherTileId = selectedResortSlug ? `weather:${selectedResortSlug}` : undefined;
+  const canAddWeather =
+    Boolean(weatherTileId) && !viewItems.some((item) => item.id === weatherTileId);
 
   // Favourites bulk-add: resolves each starred stream id via the resort
   // index, drops the ones already in the view, and pipes the rest into
@@ -604,11 +647,27 @@ function Webcam() {
             >
               {isGridMode ? (
                 <div className="flex h-full min-h-0 flex-col gap-2 p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                      {t(strings.webcam.multiView)}: {viewItems.length}
-                    </p>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-900/90 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white dark:bg-white dark:text-slate-900">
+                        {t(strings.webcam.multiView)}
+                      </span>
+                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                        {viewItems.length} {viewItems.length === 1 ? "tile" : "tiles"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {canAddWeather && (
+                        <button
+                          type="button"
+                          onClick={handleAddWeatherForSelected}
+                          title="Add weather card for current resort"
+                          className="inline-flex items-center gap-2 rounded-md border border-sky-200/80 bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-800 shadow-sm hover:bg-sky-100 dark:border-sky-700/70 dark:bg-sky-900/30 dark:text-sky-100 dark:hover:bg-sky-900/40"
+                        >
+                          <FiCloud className="h-4 w-4" aria-hidden />
+                          <span className="hidden sm:inline">Add weather</span>
+                        </button>
+                      )}
                       {favouritesNotInView.length > 0 && (
                         <button
                           type="button"
