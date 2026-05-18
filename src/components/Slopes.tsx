@@ -178,7 +178,42 @@ function Slopes() {
               {t(strings.resortPage.weatherError)}
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+              {/* Mobile (< md): card layout. Same data, denser display
+                  that doesn't require horizontal scroll. */}
+              <ul className="divide-y divide-slate-200 dark:divide-slate-800 md:hidden">
+                {tableRows.map((row) => (
+                  <li key={row.key} className="px-4 py-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        {row.slopeName}
+                      </p>
+                      <span
+                        className={cn(
+                          "ml-2 inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                          difficultyColors[row.difficulty],
+                        )}
+                      >
+                        {getLocalizedText(difficultyLabels[row.difficulty], locale)}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                      {row.resortName}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+                      {row.length ? `${Math.round(row.length).toLocaleString()} m` : "—"}
+                      <span className="mx-1 text-slate-300 dark:text-slate-600">·</span>
+                      {row.vertical ? `${Math.round(row.vertical).toLocaleString()} m ↕` : "— ↕"}
+                      <span className="mx-1 text-slate-300 dark:text-slate-600">·</span>
+                      {row.avgGradient !== undefined ? `${row.avgGradient.toFixed(1)}° avg` : "—° avg"}
+                      <span className="mx-1 text-slate-300 dark:text-slate-600">·</span>
+                      {row.maxAngle !== undefined ? `${row.maxAngle.toFixed(1)}° max` : "—° max"}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+              {/* Desktop (≥ md): original table */}
+              <div className="hidden md:block overflow-x-auto">
               <table className="min-w-full table-fixed text-sm">
                 <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-300">
                   <tr>
@@ -268,7 +303,8 @@ function Slopes() {
                   ))}
                 </tbody>
               </table>
-            </div>
+              </div>
+            </>
           )}
         </div>
       </div>

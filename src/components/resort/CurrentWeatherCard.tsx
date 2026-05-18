@@ -8,6 +8,8 @@ import { strings } from "@/lib/i18n/strings";
 import { useI18n } from "@/lib/i18n/context";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ErrorWithRetry } from "@/components/ui/ErrorWithRetry";
+import { formatRelative } from "@/lib/time/relative";
+import { useNow } from "@/lib/time/useNow";
 import { AirQualityPanel } from "./AirQualityPanel";
 
 type CurrentWeatherCardProps = {
@@ -16,10 +18,13 @@ type CurrentWeatherCardProps = {
 };
 
 export function CurrentWeatherCard({ resortSlug, variant = "standard" }: CurrentWeatherCardProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { status, data, error, reload } = useWeather(resortSlug, { mode: "now" });
   const [aqRefresh, setAqRefresh] = useState(0);
   const summary = data?.summary;
+  // Tick once a minute so "Updated 2 min ago" stays current without
+  // forcing the whole tree to re-render at 1 Hz.
+  const now = useNow(60_000);
 
   const containerClass =
     variant === "hero"
@@ -30,8 +35,9 @@ export function CurrentWeatherCard({ resortSlug, variant = "standard" }: Current
     <div className={containerClass}>
       <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
         {summary?.observedAt ? (
-          <p className="text-[11px]">
-            {t(strings.resortPage.observedAt)} {summary.observedAt}
+          <p className="text-[11px]" title={summary.observedAt}>
+            {t(strings.resortPage.observedAt)}{" "}
+            {formatRelative(summary.observedAt, locale, now)}
           </p>
         ) : (
           <p className="uppercase tracking-wide">{t(strings.resortPage.currentConditions)}</p>
