@@ -273,6 +273,7 @@ export async function loadResortsFromOpenSkiData(
         name: pickI18n(place, place.name ?? loc.slug),
         homepage: place.homepage ?? "",
         weather: "",  // legacy; Ridgecast keys off place_slug now
+        country: loc.country,  // "kr" / "jp" / "ch" / "ca" — drives the country filter chips
         lifts: liftsRaw.map((l, i) => transformLift(l, i, slopeIdMap, liftIdMap)),
         slopes: slopesRaw.map((s, i) => transformSlope(s, i, slopeIdMap, liftIdMap)),
         streams: webcamsRaw.map(transformStream),

@@ -12,6 +12,10 @@ export type Resort = {
     name: LocalizedText;
     homepage: string;
     weather: string;
+    // ISO 3166-1 alpha-2 country code (lowercase): "kr", "jp", "ch", "ca".
+    // Optional for backwards compat with the bundled fallback dataset
+    // (all KR) — openSkiData populates it for the live registry.
+    country?: string;
     lifts: Lift[];
     slopes: Slope[];
     streams: Stream[];
