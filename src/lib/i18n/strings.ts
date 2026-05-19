@@ -76,62 +76,6 @@ export const strings = {
     selectMode: createText({ ko: "선택", en: "Select", ja: "選択" }),
     selectDone: createText({ ko: "완료", en: "Done", ja: "完了" }),
   },
-  analyticsConsent: {
-    // Toast keeps it short — long-form lives at /privacy.
-    message: createText({
-      ko: "익명 사용 통계를 위해 쿠키를 사용해도 될까요?",
-      en: "Allow cookies for anonymous usage stats?",
-      ja: "匿名の利用統計のために Cookie を使ってもいいですか?",
-    }),
-    learnMore: createText({ ko: "자세히", en: "Learn more", ja: "詳細" }),
-    allow: createText({ ko: "허용", en: "Allow", ja: "許可" }),
-    decline: createText({ ko: "거부", en: "Decline", ja: "拒否" }),
-    close: createText({ ko: "닫기", en: "Close", ja: "閉じる" }),
-    settings: createText({ ko: "개인정보 설정", en: "Privacy settings", ja: "プライバシー設定" }),
-  },
-  privacy: {
-    title: createText({ ko: "개인정보 처리방침", en: "Privacy", ja: "プライバシーについて" }),
-    subtitle: createText({
-      ko: "SkiWatch가 어떤 정보를 수집하고, 그 정보로 무엇을 하는지에 대한 솔직한 설명입니다.",
-      en: "An honest summary of what SkiWatch collects and what it does with that information.",
-      ja: "SkiWatch が何を収集し、それをどう扱うかについての率直な説明です。",
-    }),
-    whatHeading: createText({ ko: "수집하는 정보", en: "What we collect", ja: "収集する情報" }),
-    whatBody: createText({
-      ko: "동의하시면 Google Analytics가 페이지 조회 이벤트, 익명화된 IP 주소, 브라우저와 운영체제, 언어 설정, 그리고 '_ga' 식별자 쿠키(최대 2년)를 기록합니다. 이름·이메일·계정 정보는 수집하지 않으며, 광고용 식별자(Ads ID)나 cross-site tracking은 사용하지 않습니다.",
-      en: "If you allow it, Google Analytics records page-view events, an anonymized IP, your browser and OS, language, and a `_ga` identifier cookie (up to 2 years). We don't collect names, emails, accounts, or advertising IDs, and don't do cross-site tracking.",
-      ja: "同意いただけた場合、Google Analytics は次の情報を記録します: ページビュー、匿名化された IP、ブラウザと OS、言語設定、`_ga` 識別子クッキー(最長2年)。氏名・メール・アカウント情報は収集せず、広告 ID やクロスサイトトラッキングは使用しません。",
-    }),
-    whyHeading: createText({ ko: "사용 목적", en: "Why we collect it", ja: "利用目的" }),
-    whyBody: createText({
-      ko: "어떤 리조트와 웹캠이 가장 많이 사용되는지, 어떤 페이지에서 이탈하는지를 파악해 다음에 무엇을 개선할지 우선순위를 정하기 위해서입니다. 그게 전부입니다 — 광고 타겟팅, 외부 판매, 프로파일링은 없습니다.",
-      en: "To see which resorts and webcams get used the most, which pages people drop off on, and decide what to improve next. That's it — no ad targeting, no selling, no profiling.",
-      ja: "どのリゾートやウェブカメラがよく使われているか、どのページで離脱しているかを把握し、次に何を改善するかを判断するためです。それ以上の用途(広告ターゲティング、第三者への販売、プロファイリング)はありません。",
-    }),
-    transferHeading: createText({
-      ko: "데이터 전송 (Google LLC, 미국)",
-      en: "Where the data goes (Google LLC, USA)",
-      ja: "データ送信先 (Google LLC, 米国)",
-    }),
-    transferBody: createText({
-      ko: "데이터는 Google Analytics를 운영하는 Google LLC(미국)로 전송되어 Google의 인프라에서 저장·처리됩니다. 개인을 식별할 수 있는 데이터는 전송되지 않습니다.",
-      en: "Data is transmitted to Google LLC in the United States, which operates Google Analytics. It's stored and processed on Google's infrastructure. No personally identifiable data is sent.",
-      ja: "データは Google Analytics を運営する Google LLC(米国)に送信され、Google のインフラ上で保存・処理されます。個人を識別できるデータは送信されません。",
-    }),
-    rightsHeading: createText({ ko: "동의 철회", en: "Withdrawing consent", ja: "同意の撤回" }),
-    rightsBody: createText({
-      ko: "메뉴(오른쪽 위 ⋮ 아이콘) → '개인정보 설정'으로 언제든지 동의를 철회할 수 있습니다. 브라우저의 Global Privacy Control(GPC) 신호도 자동으로 존중합니다.",
-      en: "Open the menu (⋮ icon, top-right) → 'Privacy settings' to withdraw consent at any time. We also automatically honor the browser's Global Privacy Control (GPC) signal.",
-      ja: "メニュー(右上の⋮アイコン) → 「プライバシー設定」からいつでも同意を撤回できます。ブラウザの Global Privacy Control(GPC)シグナルも自動的に尊重します。",
-    }),
-    contactHeading: createText({ ko: "문의", en: "Contact", ja: "お問い合わせ" }),
-    contactBody: createText({
-      ko: "질문이나 데이터 삭제 요청이 있다면 GitHub Issues 또는 메일로 연락주세요.",
-      en: "If you have questions or want your data deleted, reach me on GitHub Issues or by email.",
-      ja: "ご質問やデータ削除のご希望があれば、GitHub Issues またはメールでご連絡ください。",
-    }),
-    backToApp: createText({ ko: "← 앱으로 돌아가기", en: "← Back to app", ja: "← アプリに戻る" }),
-  },
   notices: {
     title: createText({ ko: "알림 및 출처", en: "Notices & Credits", ja: "お知らせ・クレジット" }),
     dataSources: createText({ ko: "데이터 출처", en: "Data sources", ja: "データ出典" }),

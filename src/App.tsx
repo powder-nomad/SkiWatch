@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { FiMoon, FiSun, FiMoreVertical, FiShield, FiInfo, FiCamera, FiBarChart2, FiMap } from "react-icons/fi";
+import { FiMoon, FiSun, FiMoreVertical, FiInfo, FiCamera, FiBarChart2, FiMap } from "react-icons/fi";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 // Route-level code-split. The five page components below are the only
 // places hls.js / video.js / @dnd-kit / @tanstack/react-table are
@@ -13,11 +13,9 @@ const Slopes = lazyWithRetry(() => import("@/components/Slopes"));
 const ResortListPage = lazyWithRetry(() => import("@/components/ResortListPage"));
 const ResortDetailPage = lazyWithRetry(() => import("@/components/ResortDetailPage"));
 const ResortWeatherPage = lazyWithRetry(() => import("@/components/ResortWeatherPage"));
-const PrivacyPage = lazyWithRetry(() => import("@/components/PrivacyPage"));
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { useI18n } from "@/lib/i18n/context";
 import { strings } from "@/lib/i18n/strings";
-import { AnalyticsConsent, getStoredConsent, trackPageView, type ConsentStatus } from "@/components/AnalyticsConsent";
 import { Locale, localeLabels, locales } from "@/lib/i18n/locales";
 import {
   Select,
@@ -44,7 +42,6 @@ function AppShell() {
   const { t, locale, setLocale } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
   const [noticeOpen, setNoticeOpen] = useState(false);
-  const [consentStatus, setConsentStatus] = useState<ConsentStatus>(() => getStoredConsent());
   const menuRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
   const showWeatherAttribution = !location.pathname.startsWith("/slopes");
@@ -98,20 +95,6 @@ function AppShell() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    const handleStatus = (event: Event) => {
-      const detail = (event as CustomEvent<ConsentStatus>).detail;
-      if (detail) setConsentStatus(detail);
-    };
-    window.addEventListener("analytics-consent:status", handleStatus as EventListener);
-    return () => window.removeEventListener("analytics-consent:status", handleStatus as EventListener);
-  }, []);
-
-  useEffect(() => {
-    if (consentStatus !== "granted") return;
-    trackPageView(`${location.pathname}${location.search}`);
-  }, [consentStatus, location.pathname, location.search]);
-
   const seo = useMemo(() => {
     if (location.pathname.startsWith("/slopes")) {
       return {
@@ -130,11 +113,6 @@ function AppShell() {
       description: t(strings.seo.webcamsDescription),
     };
   }, [location.pathname, t]);
-
-  const openPrivacySettings = () => {
-    window.dispatchEvent(new Event("analytics-consent:open"));
-    setMenuOpen(false);
-  };
 
   return (
     <div className="h-screen h-[100svh] flex flex-col bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors overflow-hidden">
@@ -207,14 +185,6 @@ function AppShell() {
                   </button>
                   <button
                     type="button"
-                    onClick={openPrivacySettings}
-                    className="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-                  >
-                    <span>{t(strings.analyticsConsent.settings)}</span>
-                    <FiShield className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => {
                       setNoticeOpen(true);
                       setMenuOpen(false);
@@ -247,7 +217,6 @@ function AppShell() {
             <Route path="/resorts" element={<ResortListPage />} />
             <Route path="/resorts/:slug" element={<ResortDetailPage />} />
             <Route path="/resorts/:slug/weather" element={<ResortWeatherPage />} />
-            <Route path="/privacy" element={<PrivacyPage />} />
           </Routes>
         </Suspense>
       </div>
@@ -357,7 +326,6 @@ function AppShell() {
           </div>
         </div>
       )}
-      <AnalyticsConsent />
     </div>
   );
 }
