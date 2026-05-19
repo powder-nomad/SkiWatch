@@ -174,10 +174,12 @@ function DashboardGridTile({ item, maxCols, maxRows, isMobileViewport = false, o
         ref={tileRef}
         className={cn(
           "group relative w-full overflow-visible rounded-xl border border-slate-200/80 bg-slate-100/80 shadow-sm ring-0 backdrop-blur transition hover:ring-2 hover:ring-accent-light/50 dark:border-slate-800/80 dark:bg-slate-800/50 dark:hover:ring-accent-dark/60",
-          // Mobile: each tile is full-width and self-sizes to 16:9 so
-          // the cam image fills the cell with no letterbox. Desktop:
-          // keep h-full so the grid row controls height.
-          isMobileViewport ? "aspect-video" : "h-full",
+          // Each tile is 16:9. Mobile uses aspect-video on a full-width
+          // tile; desktop uses it inside the grid cell, with min-h-0 so
+          // the grid track can compress to fit the cam rather than
+          // letterbox a 16:9 stream inside a near-square cell.
+          "aspect-video",
+          !isMobileViewport && "min-h-0",
           isDragging && "z-30 scale-[1.01] ring-2 ring-accent-light/70 dark:ring-accent-dark/80"
         )}
       >

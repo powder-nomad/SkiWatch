@@ -120,15 +120,18 @@ function Slopes() {
         </header>
 
         <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200/70 bg-white/90 px-4 py-3 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/80">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">
+          {/* Mobile: chips overflow horizontally so they don't wrap
+              onto 3 lines and push the data below the fold. Desktop
+              keeps the natural wrap. */}
+          <div className="flex w-full items-center gap-2 overflow-x-auto pb-1 md:w-auto md:flex-wrap md:overflow-x-visible md:pb-0">
+            <span className="shrink-0 text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">
               {t(strings.slopes.filterDifficulty)}
             </span>
             <button
               type="button"
               onClick={() => setDifficultyFilter("all")}
               className={cn(
-                "rounded-full px-3 py-1 text-xs font-semibold transition-colors",
+                "shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-light/60",
                 difficultyFilter === "all"
                   ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300"
@@ -142,7 +145,7 @@ function Slopes() {
                 type="button"
                 onClick={() => setDifficultyFilter(difficulty)}
                 className={cn(
-                  "rounded-full px-3 py-1 text-xs font-semibold capitalize transition-colors",
+                  "shrink-0 rounded-full px-3 py-1 text-xs font-semibold capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-light/60",
                   difficultyFilter === difficulty
                     ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300"
@@ -203,11 +206,11 @@ function Slopes() {
                     <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
                       {row.length ? `${Math.round(row.length).toLocaleString()} m` : "—"}
                       <span className="mx-1 text-slate-300 dark:text-slate-600">·</span>
-                      {row.vertical ? `${Math.round(row.vertical).toLocaleString()} m ↕` : "— ↕"}
+                      {row.vertical ? `${Math.round(row.vertical).toLocaleString()} m ↕` : "—"}
                       <span className="mx-1 text-slate-300 dark:text-slate-600">·</span>
-                      {row.avgGradient !== undefined ? `${row.avgGradient.toFixed(1)}° avg` : "—° avg"}
+                      {row.avgGradient !== undefined ? `${row.avgGradient.toFixed(1)}° avg` : "—"}
                       <span className="mx-1 text-slate-300 dark:text-slate-600">·</span>
-                      {row.maxAngle !== undefined ? `${row.maxAngle.toFixed(1)}° max` : "—° max"}
+                      {row.maxAngle !== undefined ? `${row.maxAngle.toFixed(1)}° max` : "—"}
                     </p>
                   </li>
                 ))}

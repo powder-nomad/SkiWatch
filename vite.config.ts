@@ -65,6 +65,22 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] },
             },
           },
+          {
+            // HLS playlists (.m3u8) — small but re-fetched constantly.
+            // Caching the manifest with NetworkFirst means: on a flaky
+            // mobile connection, the player still has a manifest to
+            // start from, then refreshes in the background. .ts
+            // segments are intentionally NOT cached (too big for the
+            // SW budget and they expire fast anyway).
+            urlPattern: /\.m3u8(\?.*)?$/i,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "hls-manifests",
+              networkTimeoutSeconds: 4,
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 5 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
         ],
       },
     }),
