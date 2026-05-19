@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useI18n } from "@/lib/i18n/context";
 import { strings } from "@/lib/i18n/strings";
 
@@ -244,9 +245,18 @@ export function AnalyticsConsent() {
       role="region"
       aria-label={t(strings.analyticsConsent.settings)}
     >
-      <p className="min-w-0 flex-1 truncate text-slate-700 dark:text-slate-200">
-        {t(strings.analyticsConsent.message)}
-      </p>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-slate-700 dark:text-slate-200 sm:whitespace-normal">
+          {t(strings.analyticsConsent.message)}{" "}
+          <Link
+            to="/privacy"
+            onClick={actions.close}
+            className="font-semibold text-accent-light underline-offset-2 hover:underline dark:text-accent-dark"
+          >
+            {t(strings.analyticsConsent.learnMore)}
+          </Link>
+        </p>
+      </div>
       <div className="flex shrink-0 items-center gap-1">
         <button
           type="button"

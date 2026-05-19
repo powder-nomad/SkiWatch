@@ -13,6 +13,7 @@ const Slopes = lazyWithRetry(() => import("@/components/Slopes"));
 const ResortListPage = lazyWithRetry(() => import("@/components/ResortListPage"));
 const ResortDetailPage = lazyWithRetry(() => import("@/components/ResortDetailPage"));
 const ResortWeatherPage = lazyWithRetry(() => import("@/components/ResortWeatherPage"));
+const PrivacyPage = lazyWithRetry(() => import("@/components/PrivacyPage"));
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { useI18n } from "@/lib/i18n/context";
 import { strings } from "@/lib/i18n/strings";
@@ -246,6 +247,7 @@ function AppShell() {
             <Route path="/resorts" element={<ResortListPage />} />
             <Route path="/resorts/:slug" element={<ResortDetailPage />} />
             <Route path="/resorts/:slug/weather" element={<ResortWeatherPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
           </Routes>
         </Suspense>
       </div>
