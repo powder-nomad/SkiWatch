@@ -563,7 +563,7 @@ function StalenessBadge({ ageMs, className = "" }: { ageMs: number; className?: 
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-white backdrop-blur",
+        "inline-flex items-center gap-1.5 rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-white shadow-sm ring-1 ring-inset ring-white/10 backdrop-blur-md",
         className,
       )}
       title={`Last fragment ${ageSec}s ago`}

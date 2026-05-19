@@ -712,6 +712,7 @@ function DraggableStreamItem({
   resort,
   stream,
   resortSlug,
+  tabIndex,
   isActive,
   dragEnabled,
   dragHandleOnly,
@@ -776,6 +777,7 @@ function DraggableStreamItem({
       style={style}
       {...(dragEnabled && !dragHandleOnly ? attributes : {})}
       {...(dragEnabled && !dragHandleOnly ? listeners : {})}
+      tabIndex={tabIndex}
     >
       {dragEnabled && dragHandleOnly ? (
         <div className="flex items-center gap-1">
@@ -794,6 +796,7 @@ function DraggableStreamItem({
                   },
                 }
               : { ...attributes, ...listeners })}
+            tabIndex={tabIndex}
           >
             <RxDragHandleDots2 className="h-4 w-4" />
           </button>

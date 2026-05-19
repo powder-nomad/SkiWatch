@@ -16,6 +16,8 @@ import { strings } from "@/lib/i18n/strings";
 import { formatNumber } from "@/lib/utils";
 import type { ForecastSlot, WeatherCondition } from "@/lib/weather/forecast";
 import { getLocalizedText } from "@/lib/i18n/locales";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorWithRetry } from "@/components/ui/ErrorWithRetry";
 
 const CONDITION_ICON: Record<WeatherCondition, IconType> = {
   clear: WiDaySunny,
@@ -54,18 +56,36 @@ export function WeatherWidget({ resortSlug }: { resortSlug: string }) {
 
   if (isLoading) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent-light border-t-transparent dark:border-accent-dark" />
+      <div className="flex h-full w-full flex-col gap-3 bg-gradient-to-br from-sky-50 via-white to-slate-50 p-4 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950">
+        <Skeleton className="h-4 w-28" />
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-14 w-14 rounded-full" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-9 w-16" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+        </div>
+        <div className="mt-auto grid grid-cols-4 gap-1.5 pt-3">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-sky-50 via-white to-slate-50 p-6 text-center dark:from-slate-900 dark:via-slate-900 dark:to-slate-950">
-        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-          {t(strings.resortPage.weatherError)}
-        </p>
+      <div className="flex h-full w-full flex-col justify-center bg-gradient-to-br from-sky-50 via-white to-slate-50 p-4 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950">
+        <ErrorWithRetry
+          message={t(strings.resortPage.weatherError)}
+          retryLabel={t(strings.resortPage.refresh)}
+          onRetry={() => {
+            forecast.reload();
+            now.reload();
+          }}
+        />
       </div>
     );
   }

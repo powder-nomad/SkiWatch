@@ -1,6 +1,6 @@
 "use client";
 
-import { FiAlertTriangle, FiRefreshCcw, FiSun, FiCloud, FiCloudRain, FiCloudSnow, FiCloudDrizzle, FiWind } from "react-icons/fi";
+import { FiSun, FiCloud, FiCloudRain, FiCloudSnow, FiCloudDrizzle, FiWind } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useWeather, WeatherFetchError } from "@/hooks/useWeather";
@@ -8,6 +8,8 @@ import { WeatherCondition, formatKstSlot } from "@/lib/weather/forecast";
 import { strings } from "@/lib/i18n/strings";
 import { useI18n } from "@/lib/i18n/context";
 import { CurrentWeatherCard } from "./CurrentWeatherCard";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorWithRetry } from "@/components/ui/ErrorWithRetry";
 
 type WeatherDetailsProps = {
   resortSlug: string;
@@ -91,30 +93,20 @@ export function WeatherDetails({ resortSlug, showFullLink = true }: WeatherDetai
           )}
         </div>
         {forecastStatus === "idle" || forecastStatus === "loading" ? (
-          <div className="rounded-xl border border-slate-200/70 bg-white/90 p-4 text-sm text-slate-500 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/70 dark:text-slate-400">
-            {t(strings.resortPage.weatherLoading)}
+          <div className="space-y-2 rounded-xl border border-slate-200/70 bg-white/90 p-4 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/70">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-24 w-full" />
           </div>
         ) : forecastStatus === "error" || !forecastData ? (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700 dark:border-amber-400/40 dark:bg-amber-500/10 dark:text-amber-200">
-            <div className="flex flex-col gap-2 md:flex-row md:items-center">
-              <div className="flex items-center gap-2">
-                <FiAlertTriangle className="h-4 w-4" />
-                <span>
-                  {forecastError instanceof WeatherFetchError && forecastError.status === 503
-                    ? t(strings.resortPage.weatherUpdating)
-                    : forecastError?.message ?? t(strings.resortPage.weatherError)}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={reloadForecast}
-                className="inline-flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-amber-800 dark:text-amber-200 md:ml-auto"
-              >
-                <FiRefreshCcw className="h-3 w-3" />
-                {t(strings.resortPage.retry)}
-              </button>
-            </div>
-          </div>
+          <ErrorWithRetry
+            message={
+              forecastError instanceof WeatherFetchError && forecastError.status === 503
+                ? t(strings.resortPage.weatherUpdating)
+                : forecastError?.message ?? t(strings.resortPage.weatherError)
+            }
+            retryLabel={t(strings.resortPage.retry)}
+            onRetry={reloadForecast}
+          />
         ) : (
           <>
             <div className="rounded-xl border border-slate-200/70 bg-white/90 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/70 overflow-x-auto">

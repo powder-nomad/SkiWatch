@@ -13,6 +13,8 @@ import { useI18n } from "@/lib/i18n/context";
 import { LocalizedText, getLocalizedText, type Locale } from "@/lib/i18n/locales";
 import { type ForecastSlot } from "@/lib/weather/forecast";
 import { formatNumber, cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorWithRetry } from "@/components/ui/ErrorWithRetry";
 
 const SNOW_MM_PER_CM = 10;
 
@@ -78,9 +80,14 @@ export function WeatherExplorer({ resortSlug, resortName, showStandaloneHeader =
           </button>
         </div>
         {midRange.status === "loading" ? (
-          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{t(strings.resortPage.weatherLoading)}</p>
+          <Skeleton className="mt-3 h-24 w-full" />
         ) : extendedDays.length < 2 ? (
-          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{t(strings.resortPage.weatherError)}</p>
+          <ErrorWithRetry
+            className="mt-3"
+            message={midRange.error?.message ?? t(strings.resortPage.weatherError)}
+            retryLabel={t(strings.resortPage.refresh)}
+            onRetry={midRange.reload}
+          />
         ) : (
           <>
             <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-start">
@@ -212,11 +219,18 @@ export function WeatherExplorer({ resortSlug, resortName, showStandaloneHeader =
             </button>
           </div>
           {forecast.status === "loading" ? (
-            <p className="text-sm text-slate-500 dark:text-slate-400">{t(strings.resortPage.weatherLoading)}</p>
-          ) : forecast.error ? (
-            <p className="text-sm text-amber-700 dark:text-amber-200">{t(strings.resortPage.weatherError)}</p>
-          ) : upcoming48Slots.length === 0 || !upcomingDigest ? (
-            <p className="text-sm text-slate-500 dark:text-slate-400">{t(strings.resortPage.weatherError)}</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+            </div>
+          ) : forecast.error || upcoming48Slots.length === 0 || !upcomingDigest ? (
+            <ErrorWithRetry
+              message={forecast.error?.message ?? t(strings.resortPage.weatherError)}
+              retryLabel={t(strings.resortPage.refresh)}
+              onRetry={forecast.reload}
+            />
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               <MetricCard
@@ -250,11 +264,18 @@ export function WeatherExplorer({ resortSlug, resortName, showStandaloneHeader =
           <span className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{t(strings.resortPage.upcoming48Digest)}</span>
         </div>
         {forecast.status === "loading" ? (
-          <p className="text-sm text-slate-500 dark:text-slate-400">{t(strings.resortPage.weatherLoading)}</p>
-        ) : forecast.error ? (
-          <p className="text-sm text-amber-700 dark:text-amber-200">{t(strings.resortPage.weatherError)}</p>
-        ) : hourlySlots.length === 0 ? (
-          <p className="text-sm text-slate-500 dark:text-slate-400">{t(strings.resortPage.weatherError)}</p>
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-6 w-full" />
+          </div>
+        ) : forecast.error || hourlySlots.length === 0 ? (
+          <ErrorWithRetry
+            message={forecast.error?.message ?? t(strings.resortPage.weatherError)}
+            retryLabel={t(strings.resortPage.refresh)}
+            onRetry={forecast.reload}
+          />
         ) : (
           <div className="max-h-96 overflow-y-auto">
             <table className="min-w-full table-fixed text-sm">
@@ -1115,11 +1136,14 @@ function SixHourChart({ title, status, error, points, onReload, labels, temperat
         </button>
       </div>
       {status === "loading" ? (
-        <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">{labels.loading}</p>
-      ) : status === "error" ? (
-        <p className="mt-3 text-sm text-amber-700 dark:text-amber-200">{labels.error}</p>
-      ) : !validPoints.length ? (
-        <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">{labels.error}</p>
+        <Skeleton className="mt-3 h-32 w-full" />
+      ) : status === "error" || !validPoints.length ? (
+        <ErrorWithRetry
+          className="mt-3"
+          message={labels.error}
+          retryLabel={labels.refresh}
+          onRetry={onReload}
+        />
       ) : (
         <>
           <div className="relative mt-3">
