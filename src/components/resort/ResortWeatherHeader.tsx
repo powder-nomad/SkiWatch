@@ -19,7 +19,9 @@ export function ResortWeatherHeader({ entry }: Props) {
     { id: "trend", label: t(strings.resortPage.dailyTrend) },
     { id: "past-48", label: t(strings.resortPage.past48h) },
     { id: "upcoming-48", label: t(strings.resortPage.upcoming48Digest) },
-    { id: "six-hour", label: `${t(strings.resortPage.past6h)} / ${t(strings.resortPage.next6h)}` },
+    // Middle dot (·) instead of "/" makes it clearer the chip jumps
+    // to TWO side-by-side cards, not one combined view.
+    { id: "six-hour", label: `${t(strings.resortPage.past6h)} · ${t(strings.resortPage.next6h)}` },
     { id: "hourly", label: t(strings.resortPage.hourlyDetails) },
   ];
 

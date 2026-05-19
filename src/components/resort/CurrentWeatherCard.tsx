@@ -69,10 +69,19 @@ export function CurrentWeatherCard({ resortSlug, variant = "standard" }: Current
         <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-slate-600 dark:text-slate-300 sm:flex sm:flex-wrap sm:items-center sm:gap-4">
           <div className="flex items-center gap-2">
             <p className="text-3xl font-semibold text-slate-900 dark:text-white">{formatNumber(summary.temperature, "°C")}</p>
-            <div className="inline-flex items-center gap-1 text-sm text-slate-600 dark:text-slate-300">
+            <div className="inline-flex flex-col items-start gap-0.5 text-sm text-slate-600 dark:text-slate-300">
               <span className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">
                 {t(strings.resortPage.conditions[summary.condition])}
               </span>
+              {(() => {
+                const feels = computeWindChillC(summary.temperature, summary.windSpeed);
+                if (feels === undefined) return null;
+                return (
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                    {t(strings.resortPage.feelsLike)} {Math.round(feels)}°C
+                  </span>
+                );
+              })()}
             </div>
           </div>
           <div className="flex-1 grid grid-cols-2 gap-3">
@@ -120,4 +129,19 @@ function formatNumber(value: number | undefined, suffix = "") {
   if (value === undefined || value === null) return "—";
   const display = Number.isInteger(value) ? `${value}` : value.toFixed(1);
   return suffix ? `${display}${suffix}` : display;
+}
+
+// NOAA wind-chill (metric form). Returns the apparent °C only when
+// the formula's published validity range applies — temp ≤ 10 °C and
+// wind ≥ 4.8 km/h (≈ 1.33 m/s). Outside that band wind-chill is
+// undefined; we return `undefined` and the card hides the row,
+// which is more honest than showing "feels like 18°" on a calm
+// warm day.
+function computeWindChillC(tempC?: number, windMps?: number): number | undefined {
+  if (tempC === undefined || windMps === undefined) return undefined;
+  if (tempC > 10) return undefined;
+  const windKmh = windMps * 3.6;
+  if (windKmh < 4.8) return undefined;
+  const v16 = Math.pow(windKmh, 0.16);
+  return 13.12 + 0.6215 * tempC - 11.37 * v16 + 0.3965 * tempC * v16;
 }

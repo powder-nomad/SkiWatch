@@ -19,32 +19,50 @@ const COUNTRY_CHIPS: { code: string; label: string }[] = [
   { code: "ca", label: "🇨🇦 CA" },
 ];
 
+type SortKey = "name" | "mostWebcams" | "mostSlopes";
+
 export function ResortIndexList() {
   const { t, locale } = useI18n();
   const { resortEntries } = useResortIndex();
 
   const [query, setQuery] = useState("");
   const [country, setCountry] = useState<string | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey>("name");
 
   // Resorts that DON'T have a `country` (bundled fallback dataset)
   // default to KR — the original SkiWatch dataset is all Korean.
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return resortEntries.filter((entry) => {
+    const matched = resortEntries.filter((entry) => {
       const c = entry.resort.country ?? "kr";
       if (country && c !== country) return false;
       if (!q) return true;
-      // Match against EVERY localized name (so a KR user searching in
-      // English / Japanese still finds resorts). Also match the slug
-      // for power users.
       const localized = getLocalizedText(entry.resort.name, locale).toLowerCase();
       if (localized.includes(q)) return true;
       if (entry.slug.toLowerCase().includes(q)) return true;
-      // Fall back to all i18n variants stored on the resort.
       const allNames = Object.values(entry.resort.name).join(" ").toLowerCase();
       return allNames.includes(q);
     });
-  }, [resortEntries, query, country, locale]);
+    const out = [...matched];
+    // Stable secondary sort by localized name keeps the list
+    // deterministic when the primary metric ties (e.g. two resorts
+    // with the same webcam count).
+    const byName = (a: typeof matched[number], b: typeof matched[number]) =>
+      getLocalizedText(a.resort.name, locale)
+        .localeCompare(getLocalizedText(b.resort.name, locale), locale);
+    if (sortKey === "mostWebcams") {
+      out.sort((a, b) =>
+        b.resort.streams.length - a.resort.streams.length || byName(a, b)
+      );
+    } else if (sortKey === "mostSlopes") {
+      out.sort((a, b) =>
+        b.resort.slopes.length - a.resort.slopes.length || byName(a, b)
+      );
+    } else {
+      out.sort(byName);
+    }
+    return out;
+  }, [resortEntries, query, country, locale, sortKey]);
 
   // Available country chips = the intersection of the canonical list
   // and what's actually present in the data. Prevents showing "JP"
@@ -119,6 +137,19 @@ export function ResortIndexList() {
             ))}
           </div>
         )}
+
+        <label className="inline-flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <span className="uppercase tracking-wide">{t(strings.resortPage.sort)}</span>
+          <select
+            value={sortKey}
+            onChange={(e) => setSortKey(e.target.value as SortKey)}
+            className="rounded-full border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 shadow-sm focus:border-accent-light focus:outline-none focus:ring-2 focus:ring-accent-light/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+          >
+            <option value="name">{t(strings.resortPage.sortName)}</option>
+            <option value="mostWebcams">{t(strings.resortPage.sortMostWebcams)}</option>
+            <option value="mostSlopes">{t(strings.resortPage.sortMostSlopes)}</option>
+          </select>
+        </label>
       </div>
 
       {filtered.length === 0 ? (
