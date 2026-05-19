@@ -344,7 +344,9 @@ function Sidebar({
             isDisabled
               ? "cursor-not-allowed border border-dashed border-slate-300/70 bg-slate-100 text-slate-400 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-500"
               : "border border-transparent hover:bg-accent-light/10 dark:hover:bg-accent-dark/20",
-            isSelected ? "bg-accent-light/90 text-white dark:bg-accent-dark/90" : "text-slate-700 dark:text-slate-200"
+            isSelected
+              ? "border-accent-light/40 bg-accent-light/15 text-accent-light dark:border-accent-dark/40 dark:bg-accent-dark/15 dark:text-accent-dark"
+              : "text-slate-700 dark:text-slate-200"
           )}
           disabled={isDisabled}
           tabIndex={tabIndex}

@@ -160,31 +160,48 @@ function Webcam() {
     rowSpan: 1,
   });
 
-  const parseMultiPath = (pathValue: string | undefined) => {
+  // Multi-view URL segments encode tile type along with the resort
+  // slug. Webcams use `<resort>~<stream>`; weather widgets use
+  // `<resort>~weather`. This lets Copy-link round-trip a dashboard
+  // that includes weather tiles, not just webcams.
+  type ParsedMultiSegment =
+    | { kind: "webcam"; resortSlug: string; streamSlug: string }
+    | { kind: "weather"; resortSlug: string };
+
+  const parseMultiPath = (pathValue: string | undefined): ParsedMultiSegment[] => {
     if (!pathValue) return [];
     return pathValue
       .split("/")
       .map((segment) => decodeURIComponent(segment.trim()))
       .filter(Boolean)
-      .map((segment) => {
-        const [resortSlug, streamSlug] = segment.split("~");
-        if (!resortSlug || !streamSlug) return undefined;
-        return { resortSlug, streamSlug };
+      .map((segment): ParsedMultiSegment | undefined => {
+        const [resortSlug, kindOrStream] = segment.split("~");
+        if (!resortSlug || !kindOrStream) return undefined;
+        if (kindOrStream === "weather") {
+          return { kind: "weather", resortSlug };
+        }
+        return { kind: "webcam", resortSlug, streamSlug: kindOrStream };
       })
-      .filter(Boolean) as { resortSlug: string; streamSlug: string }[];
+      .filter((s): s is ParsedMultiSegment => Boolean(s));
   };
 
   const routeForItems = (items: DashboardItem[]) => {
     if (items.length === 0) return "/webcams";
-    const routes = items.map((item) => getRouteForStreamId(item.id)).filter(Boolean) as {
-      resortSlug: string;
-      streamSlug: string;
-    }[];
-    if (routes.length === 0) return "/webcams";
-    if (routes.length === 1) {
-      return `/webcams/${routes[0].resortSlug}/${routes[0].streamSlug}`;
+    const segments: string[] = [];
+    items.forEach((item) => {
+      if (item.type === "webcam") {
+        const route = getRouteForStreamId(item.id);
+        if (route) segments.push(`${route.resortSlug}~${route.streamSlug}`);
+      } else if (item.type === "weather" && item.resortSlug) {
+        segments.push(`${item.resortSlug}~weather`);
+      }
+    });
+    if (segments.length === 0) return "/webcams";
+    if (segments.length === 1 && items[0]?.type === "webcam") {
+      // Preserve the legacy single-cam pretty URL.
+      const route = getRouteForStreamId(items[0].id);
+      if (route) return `/webcams/${route.resortSlug}/${route.streamSlug}`;
     }
-    const segments = routes.map((route) => `${route.resortSlug}~${route.streamSlug}`);
     return `/webcams/m/${segments.join("/")}`;
   };
 
@@ -196,21 +213,40 @@ function Webcam() {
   useEffect(() => {
     const isMultiRoute = location.pathname.startsWith("/webcams/m");
     if (isMultiRoute) {
-      const pairs = parseMultiPath(params["*"]);
+      const parsed = parseMultiPath(params["*"]);
       const seen = new Set<string>();
       const items: DashboardItem[] = [];
-      pairs.forEach((pair) => {
-        const found = findStreamBySlugs(pair.resortSlug, pair.streamSlug);
-        if (!found || seen.has(found.streamId)) return;
-        seen.add(found.streamId);
-        items.push(
-          toWebcamItem({
-            resort: found.resort,
-            stream: found.stream,
-            streamId: found.streamId,
-            resortSlug: found.resortSlug,
-          })
-        );
+      parsed.forEach((segment) => {
+        if (segment.kind === "webcam") {
+          const found = findStreamBySlugs(segment.resortSlug, segment.streamSlug);
+          if (!found || seen.has(found.streamId)) return;
+          seen.add(found.streamId);
+          items.push(
+            toWebcamItem({
+              resort: found.resort,
+              stream: found.stream,
+              streamId: found.streamId,
+              resortSlug: found.resortSlug,
+            })
+          );
+          return;
+        }
+        // weather segment — hydrate via resort lookup so we get a
+        // proper localised label, and dedup with the same id format
+        // used by appendPayloadItems.
+        const weatherId = `weather:${segment.resortSlug}`;
+        if (seen.has(weatherId)) return;
+        const entry = index.findResortBySlug(segment.resortSlug);
+        if (!entry) return;
+        seen.add(weatherId);
+        items.push({
+          id: weatherId,
+          type: "weather",
+          resortSlug: segment.resortSlug,
+          label: `${t(entry.resort.name)} · ${t(strings.resortPage.weather)}`,
+          colSpan: 1,
+          rowSpan: 1,
+        });
       });
       setViewItems(items);
       syncSelectionFromItems(items);

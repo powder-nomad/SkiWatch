@@ -1,6 +1,6 @@
 import { Stream } from "@/data/Util";
 
-export type DashboardItemType = "webcam" | "weather" | "slopes";
+export type DashboardItemType = "webcam" | "weather";
 
 export type DashboardItem = {
   id: string;

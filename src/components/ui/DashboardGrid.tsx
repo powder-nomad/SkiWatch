@@ -11,7 +11,6 @@ import { strings } from "@/lib/i18n/strings";
 
 import { DashboardItem } from "@/components/ui/DashboardTypes";
 import { WeatherWidget } from "@/components/widgets/WeatherWidget";
-import { SlopesWidget } from "@/components/widgets/SlopesWidget";
 
 type DashboardGridProps = {
   items: DashboardItem[];
@@ -197,9 +196,6 @@ function DashboardGridTile({ item, maxCols, maxRows, isMobileViewport = false, o
           )}
           {item.type === "weather" && item.resortSlug && (
             <WeatherWidget resortSlug={item.resortSlug} />
-          )}
-          {item.type === "slopes" && item.resortSlug && (
-            <SlopesWidget resortSlug={item.resortSlug} />
           )}
           <div className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-between bg-gradient-to-t from-black/60 via-black/20 to-transparent px-3 pb-3 pt-10 text-sm font-semibold text-white drop-shadow pointer-events-none">
             <span className="line-clamp-2">{item.label}</span>
