@@ -287,6 +287,26 @@ export const strings = {
   webcam: {
     multiView: createText({ ko: "멀티 뷰", en: "Multi-view", ja: "マルチビュー" }),
     clearAll: createText({ ko: "전체 비우기", en: "Clear all", ja: "すべてクリア" }),
+    emptyPickResort: createText({
+      ko: "리조트를 선택하면 웹캠이 재생됩니다.",
+      en: "Pick a resort below to start watching.",
+      ja: "下のリゾートを選ぶとライブ映像が再生されます。",
+    }),
+    browseAllResorts: createText({
+      ko: "모든 리조트 보기",
+      en: "Browse all resorts",
+      ja: "すべてのリゾートを見る",
+    }),
+    deselect: createText({
+      ko: "선택 해제",
+      en: "Stop watching",
+      ja: "視聴をやめる",
+    }),
+    resume: createText({
+      ko: "이어 보기",
+      en: "Resume",
+      ja: "続きを見る",
+    }),
   },
   weatherBadge: {
     unavailable: createText({ ko: "날씨 정보를 불러올 수 없습니다", en: "Weather unavailable", ja: "天気情報を取得できません" }),

@@ -15,19 +15,21 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
-import { Resort, Stream, StreamType } from "@/data/Util";
+import { Resort, Stream } from "@/data/Util";
 import Sidebar from "@/components/ui/Sidebar";
 import Player from "@/components/ui/Player";
+import EmptyStateWeatherGrid from "@/components/EmptyStateWeatherGrid";
 import { DashboardGrid } from "@/components/ui/DashboardGrid";
 import { ShareViewButton } from "@/components/ui/ShareViewButton";
 import { type DashboardItem, type DashboardItemType } from "@/components/ui/DashboardTypes";
 import { useI18n } from "@/lib/i18n/context";
-import { createText } from "@/lib/i18n/locales";
 import { strings } from "@/lib/i18n/strings";
 import { useResortData, useResortIndex } from "@/lib/resortData";
 import { getStreamIdentifier } from "@/lib/streamKeys";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useLastWatched } from "@/hooks/useLastWatched";
 import { FaStar } from "react-icons/fa";
+import { FiX } from "react-icons/fi";
 import { cn } from "@/lib/utils";
 
 type WebcamParams = {
@@ -57,6 +59,15 @@ function Webcam() {
   const [viewItems, setViewItems] = useState<DashboardItem[]>([]);
   const [isPointerDragging, setIsPointerDragging] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return window.localStorage.getItem("skiwatch-sidebar-collapsed") === "true";
+    } catch {
+      return false;
+    }
+  });
+  const { remember: rememberLastWatched } = useLastWatched();
   const [manualOverId, setManualOverId] = useState<string | null>(null);
   const lastOverIdRef = useRef<string | null>(null);
   const lastPointerRef = useRef<{ x: number; y: number } | null>(null);
@@ -104,12 +115,6 @@ function Webcam() {
   const setGridDropRef = (node: HTMLDivElement | null) => {
     gridDropElementRef.current = node;
     baseSetGridDropRef(node);
-  };
-
-  const fallbackStream: Stream = {
-    name: createText({ ko: "선택된 영상이 없습니다", en: "No stream selected" }),
-    type: StreamType.Unavailable,
-    url: "",
   };
 
   const setPrimarySelection = (entry: { resort: Resort; stream: Stream; streamId: string; resortSlug: string }) => {
@@ -265,6 +270,7 @@ function Webcam() {
           }),
         ];
         setViewItems(singleItem);
+        rememberLastWatched(found.streamId);
         setPrimarySelection({
           resort: found.resort,
           stream: found.stream,
@@ -307,6 +313,7 @@ function Webcam() {
     setSelectedResortSlug(resortSlug);
     setShouldSyncSelection(meta.shouldSyncSidebar !== false);
     setSelectionToken((token) => token + 1);
+    rememberLastWatched(meta.streamId);
 
     navigate(`/webcams/${route.resortSlug}/${route.streamSlug}`);
   };
@@ -415,6 +422,34 @@ function Webcam() {
     setViewItems([]);
     syncSelectionFromItems([]);
     navigateForItems([]);
+  };
+
+  // Deselect the current single stream and return to the empty-state grid.
+  // We intentionally do NOT call `forget()` — the last-watched id is what
+  // powers the Resume chip in EmptyStateWeatherGrid.
+  const handleDeselect = () => {
+    setViewItems([]);
+    setCurrentStream(undefined);
+    setSelectedStreamId(undefined);
+    setSelectedResortHomepage(undefined);
+    setSelectedResortSlug(undefined);
+    setShouldSyncSelection(false);
+    setSelectionToken((token) => token + 1);
+    navigate("/webcams");
+  };
+
+  const handleToggleSidebar = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem("skiwatch-sidebar-collapsed", next ? "true" : "false");
+        } catch {
+          /* noop */
+        }
+      }
+      return next;
+    });
   };
 
   // Favourites bulk-add: resolves each starred stream id via the resort
@@ -729,18 +764,45 @@ function Webcam() {
                       (isPlayerDropOver || manualOverId === PLAYER_DROP_ID) && "ring-2 ring-accent-light/60 dark:ring-accent-dark/70"
                     )}
                   />
-                  <Player stream={currentStream ?? fallbackStream} resortSlug={selectedResortSlug} rounded={false} />
+                  {currentStream ? (
+                    <>
+                      <Player
+                        stream={currentStream}
+                        resortSlug={selectedResortSlug}
+                        rounded={false}
+                        capturePlacement="bottom-right"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleDeselect}
+                        aria-label={t(strings.webcam.deselect)}
+                        title={t(strings.webcam.deselect)}
+                        className="absolute right-3 top-3 z-30 inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200/70 bg-white/80 text-slate-700 shadow backdrop-blur transition-colors hover:bg-white dark:border-slate-700/70 dark:bg-slate-900/80 dark:text-slate-100 dark:hover:bg-slate-800"
+                      >
+                        <FiX className="h-4 w-4" aria-hidden />
+                      </button>
+                    </>
+                  ) : (
+                    <EmptyStateWeatherGrid />
+                  )}
                 </div>
               )}
             </div>
           </div>
 
-          <div className="order-2 relative flex min-h-0 w-full flex-1 flex-col pt-3 md:h-full md:w-[320px] md:flex-none md:pt-0 lg:w-[360px]">
+          <div
+            className={cn(
+              "order-2 relative flex min-h-0 w-full flex-1 flex-col pt-3 md:h-full md:flex-none md:pt-0 transition-[width] duration-300",
+              isSidebarCollapsed ? "md:w-12 lg:w-12" : "md:w-[320px] lg:w-[360px]"
+            )}
+          >
             <Sidebar
               data={resorts}
               resortOrder={resortOrder}
               streamOrder={streamOrder}
               gridStreamIds={gridIdSet}
+              isCollapsed={isSidebarCollapsed}
+              onToggleCollapse={handleToggleSidebar}
               onStreamSelect={handleStreamSelect}
               onAddToGrid={handleAddToGrid}
               onRemoveFromGrid={handleRemoveFromGrid}
