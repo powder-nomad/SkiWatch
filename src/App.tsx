@@ -200,7 +200,7 @@ function AppShell() {
           </div>
         </div>
       </header>
-      <div className="flex-1 min-h-0 flex overflow-hidden">
+      <main className="flex-1 min-h-0 flex overflow-hidden">
         <Suspense
           fallback={
             <div className="flex-1 grid place-items-center text-sm text-slate-400 dark:text-slate-500">
@@ -219,7 +219,7 @@ function AppShell() {
             <Route path="/resorts/:slug/weather" element={<ResortWeatherPage />} />
           </Routes>
         </Suspense>
-      </div>
+      </main>
       {showWeatherAttribution && (
         <footer className="shrink-0 border-t border-slate-200/70 bg-white/80 px-4 py-2 pb-[max(env(safe-area-inset-bottom),0px)] text-center text-xs text-slate-500 backdrop-blur dark:border-slate-800/70 dark:bg-slate-900/80 dark:text-slate-300">
           {t(strings.attribution.weather)}{" "}
