@@ -175,6 +175,12 @@ export const strings = {
     }),
     weatherLoading: createText({ ko: "날씨 정보를 불러오는 중…", en: "Loading weather…", ja: "天気を読み込み中…" }),
     weatherError: createText({ ko: "날씨 정보를 불러올 수 없습니다", en: "Weather data unavailable", ja: "天気情報を取得できません" }),
+    notFound: createText({ ko: "리조트를 찾을 수 없습니다", en: "Resort not found", ja: "リゾートが見つかりません" }),
+    notFoundBody: createText({
+      ko: "주소를 다시 확인하거나 전체 리조트 목록에서 선택해 주세요.",
+      en: "Check the URL or pick one from the full resort list.",
+      ja: "URLを確認するか、リゾート一覧から選んでください。",
+    }),
     refresh: createText({ ko: "새로고침", en: "Refresh", ja: "更新" }),
     forecastPrevPage: createText({ ko: "이전", en: "Previous", ja: "前へ" }),
     forecastNextPage: createText({ ko: "다음", en: "Next", ja: "次へ" }),
