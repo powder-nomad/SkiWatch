@@ -7,13 +7,20 @@ import { useI18n } from "@/lib/i18n/context";
 import { strings } from "@/lib/i18n/strings";
 import VivaldiPlayer from "@/components/ui/vivaldi/VivaldiPlayer";
 import { useWeather } from "@/hooks/useWeather";
-import { FiCamera, FiChevronDown, FiChevronUp, FiDroplet, FiExternalLink, FiMaximize, FiMinimize, FiMonitor, FiWind } from "react-icons/fi";
+import { FiCamera, FiChevronDown, FiChevronUp, FiDroplet, FiExternalLink, FiMaximize, FiMinimize, FiMonitor, FiWind, FiX } from "react-icons/fi";
 import { cn } from "@/lib/utils";
 
 // Iframe load timeout — used as a heuristic for mixed-content blocks, which
 // fail silently in many browsers (no onerror fires). 8s gives the frame
 // plenty of room to load before we surface the external-link UX.
 const IFRAME_LOAD_TIMEOUT_MS = 8000;
+
+// Shared class for every overlay control in the Player (capture, deselect,
+// pip, fullscreen, quality). Single source of truth so a newly added
+// button can't drift in size/color. Pair with `w-8` for square icon
+// buttons or with horizontal padding for pill-shaped controls.
+const OVERLAY_BTN_CLASS =
+  "inline-flex h-8 items-center rounded-md border border-slate-200/70 bg-white/85 text-slate-600 shadow backdrop-blur hover:bg-white disabled:opacity-60 dark:border-slate-700/70 dark:bg-slate-900/80 dark:text-slate-100";
 
 type LoadState = "loading" | "playing" | "failed";
 
@@ -29,6 +36,10 @@ type PlayerProps = {
   // where overlay clutter covers most of a 16:9 cell — native
   // `<video controls>` then handles play/pause + fullscreen.
   bare?: boolean;
+  // When provided, renders an X button in the overlay cluster that clears
+  // the current selection. Owner (Webcam) handles the actual deselect.
+  onDeselect?: () => void;
+  deselectLabel?: string;
 };
 
 function Player({
@@ -39,6 +50,8 @@ function Player({
   capturePlacement = "top-right",
   compactCapture = false,
   bare = false,
+  onDeselect,
+  deselectLabel,
 }: PlayerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   // Outer container — fullscreen targets this so the staleness badge and
@@ -351,9 +364,10 @@ function Player({
           onClick={handleCapture}
           disabled={isCapturing}
           className={cn(
-            "absolute z-30 inline-flex items-center rounded-md border border-slate-200/70 bg-white/80 text-xs font-semibold text-slate-600 shadow backdrop-blur hover:bg-white disabled:opacity-60 dark:border-slate-700/70 dark:bg-slate-900/80 dark:text-slate-100 transition-opacity",
+            OVERLAY_BTN_CLASS,
+            "absolute z-30 text-xs font-semibold transition-opacity",
             capturePositionClass,
-            compactCapture ? "h-8 w-8 justify-center p-0" : "gap-1 px-3 py-1",
+            compactCapture ? "w-8 justify-center p-0" : "gap-1 px-3",
             overlayOpacityClass
           )}
           aria-label={isCapturing ? t(strings.player.captureSaving) : t(strings.player.capture)}
@@ -423,7 +437,7 @@ function Player({
           )}
         />
       )}
-      {!bare && (canPip || canFullscreen || hlsLevels.length > 1) && (
+      {!bare && (onDeselect || canPip || canFullscreen || hlsLevels.length > 1) && (
         <div
           className={cn(
             "absolute z-30 flex items-center gap-1 transition-opacity",
@@ -431,6 +445,17 @@ function Player({
             overlayOpacityClass
           )}
         >
+          {onDeselect && (
+            <button
+              type="button"
+              onClick={onDeselect}
+              aria-label={deselectLabel}
+              title={deselectLabel}
+              className={cn(OVERLAY_BTN_CLASS, "w-8 justify-center")}
+            >
+              <FiX className="h-4 w-4" aria-hidden />
+            </button>
+          )}
           {hlsLevels.length > 1 && !compactCapture && (
             <select
               value={hlsLevel}
@@ -441,7 +466,7 @@ function Player({
               }}
               aria-label="Stream quality"
               title="Stream quality"
-              className="inline-flex h-8 cursor-pointer items-center rounded-md border border-slate-200/70 bg-white/85 px-2 text-xs font-semibold text-slate-700 shadow backdrop-blur hover:bg-white dark:border-slate-700/70 dark:bg-slate-900/80 dark:text-slate-100"
+              className={cn(OVERLAY_BTN_CLASS, "cursor-pointer px-2 text-xs font-semibold")}
             >
               <option value={-1}>Auto</option>
               {hlsLevels.map((h, i) => (
@@ -457,7 +482,7 @@ function Player({
               onClick={togglePip}
               aria-label={isPip ? "Exit picture-in-picture" : "Picture-in-picture"}
               title={isPip ? "Exit picture-in-picture" : "Picture-in-picture"}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200/70 bg-white/85 text-slate-600 shadow backdrop-blur hover:bg-white dark:border-slate-700/70 dark:bg-slate-900/80 dark:text-slate-100"
+              className={cn(OVERLAY_BTN_CLASS, "w-8 justify-center")}
             >
               <FiMonitor className="h-4 w-4" aria-hidden />
             </button>
@@ -468,7 +493,7 @@ function Player({
               onClick={toggleFullscreen}
               aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
               title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200/70 bg-white/85 text-slate-600 shadow backdrop-blur hover:bg-white dark:border-slate-700/70 dark:bg-slate-900/80 dark:text-slate-100"
+              className={cn(OVERLAY_BTN_CLASS, "w-8 justify-center")}
             >
               {isFullscreen ? (
                 <FiMinimize className="h-4 w-4" aria-hidden />

@@ -29,7 +29,6 @@ import { getStreamIdentifier } from "@/lib/streamKeys";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useLastWatched } from "@/hooks/useLastWatched";
 import { FaStar } from "react-icons/fa";
-import { FiX } from "react-icons/fi";
 import { cn } from "@/lib/utils";
 
 type WebcamParams = {
@@ -765,23 +764,14 @@ function Webcam() {
                     )}
                   />
                   {currentStream ? (
-                    <>
-                      <Player
-                        stream={currentStream}
-                        resortSlug={selectedResortSlug}
-                        rounded={false}
-                        capturePlacement="bottom-right"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleDeselect}
-                        aria-label={t(strings.webcam.deselect)}
-                        title={t(strings.webcam.deselect)}
-                        className="absolute right-3 top-3 z-30 inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200/70 bg-white/80 text-slate-700 shadow backdrop-blur transition-colors hover:bg-white dark:border-slate-700/70 dark:bg-slate-900/80 dark:text-slate-100 dark:hover:bg-slate-800"
-                      >
-                        <FiX className="h-4 w-4" aria-hidden />
-                      </button>
-                    </>
+                    <Player
+                      stream={currentStream}
+                      resortSlug={selectedResortSlug}
+                      rounded={false}
+                      capturePlacement="bottom-right"
+                      onDeselect={handleDeselect}
+                      deselectLabel={t(strings.webcam.deselect)}
+                    />
                   ) : (
                     <EmptyStateWeatherGrid />
                   )}

@@ -420,17 +420,32 @@ function Sidebar({
     >
       <div className="relative flex h-full flex-col px-0">
         {collapseEnabled && (
-          <div className="hidden md:flex justify-end">
+          collapsed ? (
+            <div className="hidden md:flex justify-center pt-2">
+              <button
+                type="button"
+                onClick={onToggleCollapse}
+                aria-label={t(strings.sidebar.expand)}
+                aria-pressed={false}
+                title={t(strings.sidebar.expand)}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300/70 bg-white/90 text-slate-600 transition-colors hover:bg-slate-200 dark:border-slate-600/70 dark:bg-slate-800/80 dark:text-slate-100 dark:hover:bg-slate-700"
+              >
+                <FiChevronLeft className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
+          ) : (
             <button
               type="button"
               onClick={onToggleCollapse}
-              aria-label={collapsed ? t(strings.sidebar.expand) : t(strings.sidebar.collapse)}
-              aria-pressed={!collapsed}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-300/70 bg-white/90 text-slate-600 transition-colors hover:bg-slate-200 dark:border-slate-600/70 dark:bg-slate-800/80 dark:text-slate-100 dark:hover:bg-slate-700"
+              aria-label={t(strings.sidebar.collapse)}
+              aria-pressed={true}
+              title={t(strings.sidebar.collapse)}
+              className="hidden md:flex w-full items-center justify-between gap-2 border-b border-slate-200/70 bg-slate-50/70 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:border-slate-800/60 dark:bg-slate-900/40 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100"
             >
-              {collapsed ? <FiChevronLeft className="h-4 w-4" /> : <FiChevronRight className="h-4 w-4" />}
+              <span>{t(strings.sidebar.collapse)}</span>
+              <FiChevronRight className="h-4 w-4" aria-hidden />
             </button>
-          </div>
+          )
         )}
 
       {!collapseEnabled || !collapsed ? (
