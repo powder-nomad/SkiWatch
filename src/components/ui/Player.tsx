@@ -452,17 +452,6 @@ function Player({
             overlayOpacityClass
           )}
         >
-          {isMobile && onDeselect && (
-            <button
-              type="button"
-              onClick={onDeselect}
-              aria-label={deselectLabel}
-              title={deselectLabel}
-              className={cn(OVERLAY_BTN_CLASS, "w-8 justify-center")}
-            >
-              <FiX className="h-4 w-4" aria-hidden />
-            </button>
-          )}
           {hlsLevels.length > 1 && !compactCapture && (
             <select
               value={hlsLevel}
@@ -507,6 +496,17 @@ function Player({
               ) : (
                 <FiMaximize className="h-4 w-4" aria-hidden />
               )}
+            </button>
+          )}
+          {isMobile && onDeselect && (
+            <button
+              type="button"
+              onClick={onDeselect}
+              aria-label={deselectLabel}
+              title={deselectLabel}
+              className={cn(OVERLAY_BTN_CLASS, "w-8 justify-center")}
+            >
+              <FiX className="h-4 w-4" aria-hidden />
             </button>
           )}
         </div>
