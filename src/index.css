@@ -27,3 +27,13 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Suppress WebKit/Chromium native clear button on <input type="search">.
+   We render our own FiX clear button overlaid on the input, so the native
+   one creates a duplicate-X cluster. Safari + Chrome only; Firefox doesn't
+   add one. */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
