@@ -11,12 +11,14 @@ import { getLocalizedText } from "@/lib/i18n/locales";
 
 // Country chip palette. Order is intentional: KR first (primary
 // audience), then JP/CH/CA in alphabetical order. Add codes here
-// as open-ski-data grows.
-const COUNTRY_CHIPS: { code: string; label: string }[] = [
-  { code: "kr", label: "🇰🇷 KR" },
-  { code: "jp", label: "🇯🇵 JP" },
-  { code: "ch", label: "🇨🇭 CH" },
-  { code: "ca", label: "🇨🇦 CA" },
+// as open-ski-data grows. `flag` renders via the .emoji font stack so
+// the regional-indicator pair stays a glyph (not tofu) on any device
+// that ships an emoji font.
+const COUNTRY_CHIPS: { code: string; flag: string; label: string }[] = [
+  { code: "kr", flag: "🇰🇷", label: "KR" },
+  { code: "jp", flag: "🇯🇵", label: "JP" },
+  { code: "ch", flag: "🇨🇭", label: "CH" },
+  { code: "ca", flag: "🇨🇦", label: "CA" },
 ];
 
 type SortKey = "name" | "mostWebcams" | "mostSlopes";
@@ -132,6 +134,7 @@ export function ResortIndexList() {
                     : "border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800",
                 ].join(" ")}
               >
+                <span className="emoji mr-1" aria-hidden>{chip.flag}</span>
                 {chip.label}
               </button>
             ))}

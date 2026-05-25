@@ -37,3 +37,12 @@ input[type="search"]::-webkit-search-decoration {
   -webkit-appearance: none;
   appearance: none;
 }
+
+/* Force the OS emoji font for flag/symbol glyphs. The default body font
+   stack contains no emoji glyphs, so on Linux/headless Chromium without
+   Noto Color Emoji the regional-indicator pair renders as tofu (□□).
+   Apply via <span className="emoji">…</span>. */
+.emoji {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+    "Noto Color Emoji", "Twemoji Mozilla", sans-serif;
+}
