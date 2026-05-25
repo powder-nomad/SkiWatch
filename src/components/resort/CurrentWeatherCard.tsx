@@ -31,6 +31,11 @@ export function CurrentWeatherCard({ resortSlug, variant = "standard" }: Current
       ? "flex h-full flex-col justify-between rounded-2xl border border-slate-200/70 bg-gradient-to-br from-slate-50 to-white p-4 shadow-sm dark:border-slate-700/70 dark:from-slate-900 dark:to-slate-950"
       : "rounded-2xl border border-slate-200/80 bg-gradient-to-br from-sky-50 to-white p-4 shadow-sm dark:border-slate-800/60 dark:from-slate-900 dark:to-slate-950";
 
+  // Hide the header refresh chip in the no-data error branch — the inline
+  // ErrorWithRetry below renders its own retry button, and rendering both
+  // gives the card two visually identical reload controls.
+  const showHeaderRefresh = summary !== undefined || status === "loading";
+
   return (
     <div className={containerClass}>
       <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
@@ -42,17 +47,19 @@ export function CurrentWeatherCard({ resortSlug, variant = "standard" }: Current
         ) : (
           <p className="uppercase tracking-wide">{t(strings.resortPage.currentConditions)}</p>
         )}
-        <button
-          type="button"
-          onClick={() => {
-            reload();
-            setAqRefresh((value) => value + 1);
-          }}
-          className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-2 py-0.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-        >
-          <FiRefreshCcw className="h-3 w-3" aria-hidden />
-          {t(strings.resortPage.refresh)}
-        </button>
+        {showHeaderRefresh && (
+          <button
+            type="button"
+            onClick={() => {
+              reload();
+              setAqRefresh((value) => value + 1);
+            }}
+            className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-2 py-0.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            <FiRefreshCcw className="h-3 w-3" aria-hidden />
+            {t(strings.resortPage.refresh)}
+          </button>
+        )}
       </div>
 
       {status === "loading" && !summary ? (
