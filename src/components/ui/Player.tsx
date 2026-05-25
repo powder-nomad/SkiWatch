@@ -19,8 +19,12 @@ const IFRAME_LOAD_TIMEOUT_MS = 8000;
 // pip, fullscreen, quality). Single source of truth so a newly added
 // button can't drift in size/color. Pair with `w-8` for square icon
 // buttons or with horizontal padding for pill-shaped controls.
+// Dark glass on purpose: video frames can be bright (sunlit snow/grass) or dark
+// (night/dawn), and a white pill disappears against bright scenes. Slate-900 +
+// white icon stays legible on every background; the white ring adds an outline
+// so the edge is visible even when the chrome behind it matches.
 const OVERLAY_BTN_CLASS =
-  "inline-flex h-8 items-center rounded-md border border-slate-200/70 bg-white/85 text-slate-600 shadow backdrop-blur hover:bg-white disabled:opacity-60 dark:border-slate-700/70 dark:bg-slate-900/80 dark:text-slate-100";
+  "inline-flex h-8 items-center rounded-md bg-slate-900/70 text-white shadow ring-1 ring-white/30 backdrop-blur hover:bg-slate-900/85 disabled:opacity-60";
 
 type LoadState = "loading" | "playing" | "failed";
 
@@ -305,7 +309,10 @@ function Player({
     }
   };
 
-  const overlayOpacityClass = overlayActive ? "opacity-100" : "opacity-30";
+  // Mobile has no hover, so dimming overlays to 30% leaves the deselect/PiP
+  // cluster effectively invisible. Keep mobile fully opaque; desktop still
+  // dims on mouse-leave so the cluster isn't intrusive over the video.
+  const overlayOpacityClass = overlayActive || isMobile ? "opacity-100" : "opacity-30";
   // Overlay edge padding: tighter in tile mode (compactCapture) so the
   // Player's right-side cluster lines up vertically with the
   // DashboardGrid tile's left-side drag/menu cluster (which sits at
