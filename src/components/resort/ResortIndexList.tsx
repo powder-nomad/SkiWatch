@@ -91,14 +91,14 @@ export function ResortIndexList() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Yongpyong, ヨンピョン, …"
-            aria-label="Search resorts"
+            aria-label={t(strings.resortPage.searchAriaLabel)}
             className="w-full rounded-full border border-slate-200 bg-white pl-9 pr-9 py-2 text-sm text-slate-900 shadow-sm transition focus:border-accent-light focus:outline-none focus:ring-2 focus:ring-accent-light/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
           />
           {query && (
             <button
               type="button"
               onClick={() => setQuery("")}
-              aria-label="Clear search"
+              aria-label={t(strings.resortPage.clearSearch)}
               className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
             >
               <FiX className="h-4 w-4" />
@@ -154,7 +154,7 @@ export function ResortIndexList() {
 
       {filtered.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-400">
-          No resorts match.
+          {t(strings.resortPage.noResortsMatch)}
         </p>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">

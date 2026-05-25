@@ -460,8 +460,8 @@ function Player({
                 if (hlsRef.current) hlsRef.current.currentLevel = lvl;
                 setHlsLevel(lvl);
               }}
-              aria-label="Stream quality"
-              title="Stream quality"
+              aria-label={t(strings.player.streamQuality)}
+              title={t(strings.player.streamQuality)}
               className={cn(OVERLAY_BTN_CLASS, "cursor-pointer px-2 text-xs font-semibold")}
             >
               <option value={-1}>Auto</option>
@@ -476,8 +476,8 @@ function Player({
             <button
               type="button"
               onClick={togglePip}
-              aria-label={isPip ? "Exit picture-in-picture" : "Picture-in-picture"}
-              title={isPip ? "Exit picture-in-picture" : "Picture-in-picture"}
+              aria-label={t(isPip ? strings.player.exitPictureInPicture : strings.player.pictureInPicture)}
+              title={t(isPip ? strings.player.exitPictureInPicture : strings.player.pictureInPicture)}
               className={cn(OVERLAY_BTN_CLASS, "w-8 justify-center")}
             >
               <FiMonitor className="h-4 w-4" aria-hidden />
@@ -487,8 +487,8 @@ function Player({
             <button
               type="button"
               onClick={toggleFullscreen}
-              aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
-              title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+              aria-label={t(isFullscreen ? strings.player.exitFullscreen : strings.player.fullscreen)}
+              title={t(isFullscreen ? strings.player.exitFullscreen : strings.player.fullscreen)}
               className={cn(OVERLAY_BTN_CLASS, "w-8 justify-center")}
             >
               {isFullscreen ? (

@@ -45,6 +45,19 @@ export const strings = {
       en: "Open in new tab",
       ja: "新しいタブで開く",
     }),
+    streamQuality: createText({ ko: "화질", en: "Stream quality", ja: "画質" }),
+    pictureInPicture: createText({
+      ko: "PIP 모드",
+      en: "Picture-in-picture",
+      ja: "ピクチャー・イン・ピクチャー",
+    }),
+    exitPictureInPicture: createText({
+      ko: "PIP 종료",
+      en: "Exit picture-in-picture",
+      ja: "ピクチャー・イン・ピクチャーを終了",
+    }),
+    fullscreen: createText({ ko: "전체화면", en: "Fullscreen", ja: "全画面" }),
+    exitFullscreen: createText({ ko: "전체화면 종료", en: "Exit fullscreen", ja: "全画面終了" }),
   },
   sidebar: {
     collapse: createText({ ko: "접기", en: "Collapse", ja: "折りたたむ" }),
@@ -175,6 +188,9 @@ export const strings = {
     }),
     weatherLoading: createText({ ko: "날씨 정보를 불러오는 중…", en: "Loading weather…", ja: "天気を読み込み中…" }),
     weatherError: createText({ ko: "날씨 정보를 불러올 수 없습니다", en: "Weather data unavailable", ja: "天気情報を取得できません" }),
+    searchAriaLabel: createText({ ko: "리조트 검색", en: "Search resorts", ja: "リゾートを検索" }),
+    clearSearch: createText({ ko: "검색어 지우기", en: "Clear search", ja: "検索をクリア" }),
+    noResortsMatch: createText({ ko: "조건에 맞는 리조트가 없습니다.", en: "No resorts match.", ja: "条件に一致するリゾートがありません。" }),
     notFound: createText({ ko: "리조트를 찾을 수 없습니다", en: "Resort not found", ja: "リゾートが見つかりません" }),
     notFoundBody: createText({
       ko: "주소를 다시 확인하거나 전체 리조트 목록에서 선택해 주세요.",
