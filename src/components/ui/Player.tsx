@@ -437,7 +437,7 @@ function Player({
           )}
         />
       )}
-      {!bare && (onDeselect || canPip || canFullscreen || hlsLevels.length > 1) && (
+      {!bare && ((isMobile && onDeselect) || canPip || canFullscreen || hlsLevels.length > 1) && (
         <div
           className={cn(
             "absolute z-30 flex items-center gap-1 transition-opacity",
@@ -445,7 +445,7 @@ function Player({
             overlayOpacityClass
           )}
         >
-          {onDeselect && (
+          {isMobile && onDeselect && (
             <button
               type="button"
               onClick={onDeselect}
