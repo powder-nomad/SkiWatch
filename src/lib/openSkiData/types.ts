@@ -63,3 +63,31 @@ export type RawWebcam = {
   type?: string;
   metadata?: StreamMetadata;
 };
+
+// A specific point in the open-ski-data registry walk that failed.
+// `scope` says what kind of document we were after, `url` is the exact
+// URL we tried (so the user/log has something actionable), `placeSlug`
+// is filled in when we can attribute the failure to a specific resort
+// so /resorts/:slug can render a per-resort warning.
+export type LoadErrorScope =
+  | "registry"
+  | "country"
+  | "region"
+  | "place"
+  | "lifts"
+  | "slopes"
+  | "webcams";
+
+export type LoadError = {
+  scope: LoadErrorScope;
+  url: string;
+  status?: number;
+  message: string;
+  placeSlug?: string;
+  country?: string;
+};
+
+export type LoadResult = {
+  resorts: import("@/data/Util").Resort[];
+  errors: LoadError[];
+};

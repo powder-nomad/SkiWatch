@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiSearch, FiX } from "react-icons/fi";
+import { LoadStatusBanner } from "@/components/resort/LoadStatusBanner";
 import { WeatherBadge } from "@/components/weather/WeatherBadge";
 import { useI18n } from "@/lib/i18n/context";
 import { strings } from "@/lib/i18n/strings";
@@ -81,6 +82,8 @@ export function ResortIndexList() {
         <h1 className="text-3xl font-semibold text-slate-900 dark:text-slate-100">{t(strings.resortPage.listTitle)}</h1>
         <p className="text-sm text-slate-600 dark:text-slate-300">{t(strings.resortPage.listDescription)}</p>
       </header>
+
+      <LoadStatusBanner />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
         <label className="relative flex-1">

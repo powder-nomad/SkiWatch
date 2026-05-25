@@ -191,6 +191,33 @@ export const strings = {
     searchAriaLabel: createText({ ko: "리조트 검색", en: "Search resorts", ja: "リゾートを検索" }),
     clearSearch: createText({ ko: "검색어 지우기", en: "Clear search", ja: "検索をクリア" }),
     noResortsMatch: createText({ ko: "조건에 맞는 리조트가 없습니다.", en: "No resorts match.", ja: "条件に一致するリゾートがありません。" }),
+    dataBundledFallbackTitle: createText({
+      ko: "최신 리조트 데이터를 불러오지 못했습니다",
+      en: "Couldn't load the latest resort data",
+      ja: "最新のリゾートデータを取得できませんでした",
+    }),
+    dataBundledFallbackBody: createText({
+      ko: "기본 데이터만 표시되고 있습니다. 일부 국가·리조트가 보이지 않을 수 있습니다.",
+      en: "Showing the built-in dataset only. Some countries/resorts may be missing right now.",
+      ja: "内蔵データのみ表示しています。一部の国・リゾートは表示されない場合があります。",
+    }),
+    dataPartialTitle: createText({
+      ko: "일부 리조트 정보를 불러오지 못했습니다",
+      en: "Some resort data couldn't be loaded",
+      ja: "一部のリゾート情報を取得できませんでした",
+    }),
+    dataPartialBody: createText({
+      ko: "표시된 리조트의 일부 항목(리프트·슬로프·웹캠)이 누락되었을 수 있습니다.",
+      en: "A few sections (lifts, slopes, or webcams) for some resorts may be missing.",
+      ja: "一部のリゾートの一部項目(リフト・コース・カメラ)が欠落している可能性があります。",
+    }),
+    dataRetry: createText({ ko: "다시 시도", en: "Retry", ja: "再試行" }),
+    dataLoadingErrors: createText({ ko: "오류 자세히 보기", en: "Show error details", ja: "エラーの詳細を表示" }),
+    perResortPartial: createText({
+      ko: "이 리조트의 일부 정보를 불러오지 못했습니다.",
+      en: "Some of this resort's data couldn't be loaded.",
+      ja: "このリゾートの一部情報を取得できませんでした。",
+    }),
     notFound: createText({ ko: "리조트를 찾을 수 없습니다", en: "Resort not found", ja: "リゾートが見つかりません" }),
     notFoundBody: createText({
       ko: "주소를 다시 확인하거나 전체 리조트 목록에서 선택해 주세요.",
