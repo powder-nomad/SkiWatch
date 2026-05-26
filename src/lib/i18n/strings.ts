@@ -188,6 +188,11 @@ export const strings = {
     }),
     weatherLoading: createText({ ko: "날씨 정보를 불러오는 중…", en: "Loading weather…", ja: "天気を読み込み中…" }),
     weatherError: createText({ ko: "날씨 정보를 불러올 수 없습니다", en: "Weather data unavailable", ja: "天気情報を取得できません" }),
+    limitedHourlyTemps: createText({
+      ko: "시간별 기온 데이터 미제공 — 아래 확장 예보 참고",
+      en: "Hourly temperatures unavailable — see extended outlook below",
+      ja: "時間別気温データなし — 下部の延長予報を参照",
+    }),
     searchAriaLabel: createText({ ko: "리조트 검색", en: "Search resorts", ja: "リゾートを検索" }),
     clearSearch: createText({ ko: "검색어 지우기", en: "Clear search", ja: "検索をクリア" }),
     noResortsMatch: createText({ ko: "조건에 맞는 리조트가 없습니다.", en: "No resorts match.", ja: "条件に一致するリゾートがありません。" }),
@@ -313,11 +318,11 @@ export const strings = {
   },
   attribution: {
     weather: createText({
-      ko: "기상자료 제공: 기상청 / 공공데이터포털 (공공누리 제1유형)",
-      en: "Weather data provided by KMA / Public Data Portal (KOGL Type 1)",
-      ja: "気象データ提供: KMA / 公共データポータル (KOGL Type 1)",
+      ko: "기상자료 제공: 기상청 (공공누리 제1유형) · 일본 기상청 (오픈데이터)",
+      en: "Weather data: KMA (KOGL Type 1) · JMA (Open Data)",
+      ja: "気象データ: 韓国気象庁 (KOGL Type 1) · 気象庁 (オープンデータ)",
     }),
-    linkLabel: createText({ ko: "공공누리 라이선스 안내", en: "KOGL License", ja: "KOGL ライセンス" }),
+    linkLabel: createText({ ko: "공공누리 라이선스", en: "KOGL License", ja: "KOGL ライセンス" }),
   },
   dashboardGrid: {
     emptyTitle: createText({ ko: "그리드가 비어 있습니다", en: "No cards in the grid", ja: "グリッドにカードがありません" }),

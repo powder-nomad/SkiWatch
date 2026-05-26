@@ -150,6 +150,7 @@ export function WeatherExplorer({ resortSlug, resortName, showStandaloneHeader =
             refresh: t(strings.resortPage.refresh),
             loading: t(strings.resortPage.weatherLoading),
             error: t(strings.resortPage.weatherError),
+            limited: t(strings.resortPage.limitedHourlyTemps),
           }}
         />
         <SixHourChart
@@ -163,6 +164,7 @@ export function WeatherExplorer({ resortSlug, resortName, showStandaloneHeader =
             refresh: t(strings.resortPage.refresh),
             loading: t(strings.resortPage.weatherLoading),
             error: t(strings.resortPage.weatherError),
+            limited: t(strings.resortPage.limitedHourlyTemps),
           }}
         />
       </section>
@@ -277,41 +279,74 @@ export function WeatherExplorer({ resortSlug, resortName, showStandaloneHeader =
             onRetry={forecast.reload}
           />
         ) : (
-          <div className="max-h-96 overflow-y-auto">
-            <table className="min-w-full table-fixed text-sm">
-              <thead className="sticky top-0 bg-white text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900 dark:text-slate-400">
-                <tr>
-                  <th className="w-32 px-4 py-2 text-left">{t(strings.resortPage.time)}</th>
-                  <th className="w-32 px-4 py-2 text-left">{t(strings.resortPage.condition)}</th>
-                  <th className="w-24 px-4 py-2 text-left">{t(strings.resortPage.temperature)}</th>
-                  <th className="w-32 px-4 py-2 text-left">{t(strings.resortPage.precipAmount)}</th>
-                  <th className="w-28 px-4 py-2 text-left">{t(strings.resortPage.humidity)}</th>
-                  <th className="w-28 px-4 py-2 text-left">{t(strings.resortPage.wind)}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {hourlySlots.map((slot) => (
-                  <tr key={slot.key}>
-                    <td className="px-4 py-2 text-slate-700 dark:text-slate-200">{formatForecastTimestamp(slot, locale)}</td>
-                    <td className="px-4 py-2 text-slate-700 dark:text-slate-200">
-                      <ConditionIcon
-                        part={{
-                          weather: t(strings.resortPage.conditions[slot.condition]),
-                          precipitationChance: slot.precipitationProbability,
-                        }}
-                      />
-                    </td>
-                    <td className="px-4 py-2 text-slate-700 dark:text-slate-200">{formatNumber(slot.temperature, "°C")}</td>
-                    <td className="px-4 py-2 text-slate-700 dark:text-slate-200">
-                      {formatPrecipParts(slot, t)}
-                    </td>
-                    <td className="px-4 py-2 text-slate-700 dark:text-slate-200">{slot.humidity !== undefined ? `${slot.humidity}%` : "—"}</td>
-                    <td className="px-4 py-2 text-slate-700 dark:text-slate-200">{slot.windSpeed !== undefined ? `${formatNumber(slot.windSpeed)} m/s` : "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          (() => {
+            // Hide columns where every displayed row is empty. JMA forecast
+            // slots only carry weather codes + (extended-only) POP, so the
+            // KMA-shaped Temp/Precip/Humidity/Wind columns would all read
+            // "—" across every row — wider empty space than information.
+            const showTemp = hourlySlots.some((s) => s.temperature !== undefined);
+            const showPrecip = hourlySlots.some((s) =>
+              s.precipitation !== undefined
+              || s.precipitationRain !== undefined
+              || s.precipitationSnow !== undefined
+              || s.precipitationProbability !== undefined,
+            );
+            const showHumidity = hourlySlots.some((s) => s.humidity !== undefined);
+            const showWind = hourlySlots.some((s) => s.windSpeed !== undefined);
+            return (
+              <div className="max-h-96 overflow-y-auto">
+                <table className="min-w-full table-fixed text-sm">
+                  <thead className="sticky top-0 bg-white text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+                    <tr>
+                      <th className="w-32 px-4 py-2 text-left">{t(strings.resortPage.time)}</th>
+                      <th className="w-32 px-4 py-2 text-left">{t(strings.resortPage.condition)}</th>
+                      {showTemp && (
+                        <th className="w-24 px-4 py-2 text-left">{t(strings.resortPage.temperature)}</th>
+                      )}
+                      {showPrecip && (
+                        <th className="w-32 px-4 py-2 text-left">{t(strings.resortPage.precipAmount)}</th>
+                      )}
+                      {showHumidity && (
+                        <th className="w-28 px-4 py-2 text-left">{t(strings.resortPage.humidity)}</th>
+                      )}
+                      {showWind && (
+                        <th className="w-28 px-4 py-2 text-left">{t(strings.resortPage.wind)}</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {hourlySlots.map((slot) => (
+                      <tr key={slot.key}>
+                        <td className="px-4 py-2 text-slate-700 dark:text-slate-200">{formatForecastTimestamp(slot, locale)}</td>
+                        <td className="px-4 py-2 text-slate-700 dark:text-slate-200">
+                          <ConditionIcon
+                            part={{
+                              weather: t(strings.resortPage.conditions[slot.condition]),
+                              precipitationChance: slot.precipitationProbability,
+                            }}
+                          />
+                        </td>
+                        {showTemp && (
+                          <td className="px-4 py-2 text-slate-700 dark:text-slate-200">{formatNumber(slot.temperature, "°C")}</td>
+                        )}
+                        {showPrecip && (
+                          <td className="px-4 py-2 text-slate-700 dark:text-slate-200">
+                            {formatPrecipParts(slot, t)}
+                          </td>
+                        )}
+                        {showHumidity && (
+                          <td className="px-4 py-2 text-slate-700 dark:text-slate-200">{slot.humidity !== undefined ? `${slot.humidity}%` : "—"}</td>
+                        )}
+                        {showWind && (
+                          <td className="px-4 py-2 text-slate-700 dark:text-slate-200">{slot.windSpeed !== undefined ? `${formatNumber(slot.windSpeed)} m/s` : "—"}</td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })()
         )}
       </section>
     </div>
@@ -1091,12 +1126,17 @@ type SixHourChartProps = {
   error?: string;
   points: MiniSeriesPoint[];
   onReload: () => void;
-  labels: { refresh: string; loading: string; error: string };
+  labels: { refresh: string; loading: string; error: string; limited?: string };
   temperatureRange?: { min: number; max: number };
 };
 
 function SixHourChart({ title, status, error, points, onReload, labels, temperatureRange }: SixHourChartProps) {
   const validPoints = points.filter((point) => point.temperature !== undefined);
+  // JMA short-term forecast slots carry only weather codes (no temperature)
+  // at 6h resolution, so a temp line chart can't render. That's a data-shape
+  // difference, not a failure — show the slot labels with an informational
+  // note rather than the error+retry state.
+  const hasOnlyLabels = status !== "error" && points.length > 0 && validPoints.length === 0;
   const temps = validPoints.map((point) => point.temperature!);
   const localMin = temps.length ? Math.min(...temps) : undefined;
   const localMax = temps.length ? Math.max(...temps) : undefined;
@@ -1137,6 +1177,24 @@ function SixHourChart({ title, status, error, points, onReload, labels, temperat
       </div>
       {status === "loading" ? (
         <Skeleton className="mt-3 h-32 w-full" />
+      ) : hasOnlyLabels ? (
+        <div className="mt-3 space-y-2">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            {labels.limited ?? labels.error}
+          </p>
+          <ul className="text-sm text-slate-700 dark:text-slate-200">
+            {points.slice(0, 6).map((p, i) => (
+              <li key={`${p.label}-${i}`} className="flex justify-between gap-3 py-1">
+                <span className="font-mono text-xs text-slate-500 dark:text-slate-400">{p.label}</span>
+                <span className="truncate">
+                  {p.precipitation !== undefined && p.precipitationUnit
+                    ? `${formatNumber(p.precipitation, p.precipitationUnit)}`
+                    : "—"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : status === "error" || !validPoints.length ? (
         <ErrorWithRetry
           className="mt-3"
