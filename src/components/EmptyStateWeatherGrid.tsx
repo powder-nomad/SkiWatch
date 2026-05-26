@@ -94,7 +94,7 @@ function EmptyStateWeatherGrid() {
               className="group flex h-full flex-col gap-2 rounded-xl border border-slate-200/80 bg-white/80 p-3 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent-light/60 hover:shadow-md dark:border-slate-700/60 dark:bg-slate-900/60 dark:hover:border-accent-dark/60"
             >
               <div className="flex items-start justify-between gap-2">
-                <span className="min-w-0 truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                <span className="min-w-0 line-clamp-2 text-sm font-semibold leading-snug text-slate-900 dark:text-slate-100">
                   {t(resort.name)}
                 </span>
                 <WeatherBadge resortSlug={slug} priority className="shrink-0" />

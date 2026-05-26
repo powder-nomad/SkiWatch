@@ -269,7 +269,7 @@ export const strings = {
       ja: "リゾートの直近の天気と予報を確認してください。",
     }),
     weatherSectionNav: createText({ ko: "날씨 섹션", en: "Weather sections", ja: "天気セクション" }),
-    officialForecastLink: createText({ ko: "기상청 상세예보", en: "Official KMA forecast", ja: "気象庁 詳細予報" }),
+    officialForecastLink: createText({ ko: "기상청 상세예보", en: "Official KMA forecast", ja: "KMA 詳細予報" }),
     past48h: createText({ ko: "지난 48시간", en: "Past 48h", ja: "過去48時間" }),
     historyMetrics: createText({ ko: "요약", en: "Summary", ja: "サマリー" }),
     recentObservations: createText({ ko: "최근 관측", en: "Recent observations", ja: "最近の観測" }),
@@ -315,7 +315,7 @@ export const strings = {
     weather: createText({
       ko: "기상자료 제공: 기상청 / 공공데이터포털 (공공누리 제1유형)",
       en: "Weather data provided by KMA / Public Data Portal (KOGL Type 1)",
-      ja: "気象データ提供: 気象庁 / 公共データポータル (KOGL Type 1)",
+      ja: "気象データ提供: KMA / 公共データポータル (KOGL Type 1)",
     }),
     linkLabel: createText({ ko: "공공누리 라이선스 안내", en: "KOGL License", ja: "KOGL ライセンス" }),
   },
